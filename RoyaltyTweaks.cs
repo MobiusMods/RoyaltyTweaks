@@ -183,10 +183,10 @@ namespace TestMod
         /// The three settings our mod has.
         /// </summary>
         ///
-        public bool throneRoomTweaks;
-        public bool spouseWantsThroneroom;
-        public bool willWorkPassionSkills;
-        public bool willWorkOnlyMajorPassionSkills;
+        public bool throneRoomTweaks = true;
+        public bool spouseWantsThroneroom = true;
+        public bool willWorkPassionSkills = true;
+        public bool willWorkOnlyMajorPassionSkills = false;
         //public float exampleFloat = 200f;
         //public List<Pawn> exampleListOfPawns = new List<Pawn>();
 

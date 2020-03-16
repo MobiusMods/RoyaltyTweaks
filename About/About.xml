@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+   <name>Royalty Tweaks</name>
+   <author>Mobius</author>
+  <packageId>mobius.royaltytweaks</packageId> 
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+      <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>Ludeon.RimWorld</li>
+    <li>Ludeon.RimWorld.Royalty</li>
+    <li>brrainz.harmony</li>
+  </loadAfter>
+  <supportedVersions>
+    <li>1.1</li>
+  </supportedVersions>
+  <description>-=[ Royalty Tweaks 1.07a ]=-
+  
+ * Reduces throneroom demand to the highest ranking royal only, or them and their spouse.
+ 
+ * Restores royal colonist skills for which they are passionate that have been disabled by increasing royal title.</description>
+</ModMetaData>
