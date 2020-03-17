@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  <ThroneRoomSettings>谒见厅选项</ThroneRoomSettings>
+  <ThroneRoomRequiredByHighestCheckboxLabel>仅最高头衔的贵族需求谒见厅</ThroneRoomRequiredByHighestCheckboxLabel>
+  <ThroneRoomRequiredByHighestCheckboxTooltip>只有最高头衔的贵族(们)会需求谒见厅。</ThroneRoomRequiredByHighestCheckboxTooltip>
+  <SpouseOptionLabel>贵族配偶也需求谒见厅</SpouseOptionLabel>
+  <SpouseOptionTooltip>若最高头衔贵族的配偶的贵族级别需求谒见厅，则也会要求符合自身爵位的谒见厅。</SpouseOptionTooltip>
+  <RoyalPassionSkillSettings>贵族兴趣技能设置</RoyalPassionSkillSettings>
+  <PassionSkillsCheckboxLabel>恢复已禁用的兴趣工作</PassionSkillsCheckboxLabel>
+  <PassionSkillsCheckboxTooltip>贵族在晋升爵位后依然可以继续进行之前感兴趣的工作。(感兴趣=技能有火)</PassionSkillsCheckboxTooltip>
+  <MajorAndMinorLabel>狂热和好奇</MajorAndMinorLabel>
+  <MajorAndMinorTooltip>贵族在晋升后将继续进行被职位禁止，但兴趣度为狂热和好奇的技能相关工作。这是Mod默认选项。</MajorAndMinorTooltip>
+  <OnlyMajorLabel>仅狂热</OnlyMajorLabel>
+  <OnlyMajorTooltip>贵族在晋升后将继续进行被职位禁止，但兴趣度为狂热的技能相关工作，兴趣度为好奇的技能相关工作在爵位晋升后会被禁止。</OnlyMajorTooltip>
+  <RoyalTweaks>皇权设定调整</RoyalTweaks>
+</LanguageData>
