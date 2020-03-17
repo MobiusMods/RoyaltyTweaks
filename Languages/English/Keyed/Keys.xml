@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  <ThroneRoomSettings>Throne Room Settings</ThroneRoomSettings>
+  <ThroneRoomRequiredByHighestCheckboxLabel>Throne Rooms Required Only by Highest Titled Royals</ThroneRoomRequiredByHighestCheckboxLabel>
+  <ThroneRoomRequiredByHighestCheckboxTooltip>Only the highest titled noble(s) will require/demand a throne room.</ThroneRoomRequiredByHighestCheckboxTooltip>
+  <SpouseOptionLabel>Royal Spouse Wants Throne Room Too</SpouseOptionLabel>
+  <SpouseOptionTooltip>The royal spouse of the highest titled royal will also demand a throneroom if their rank would normally call for it.</SpouseOptionTooltip>
+  <RoyalPassionSkillSettings>Royal Passion Skill Settings</RoyalPassionSkillSettings>
+  <PassionSkillsCheckboxLabel>Restore Disabled Royal Passion Skills</PassionSkillsCheckboxLabel>
+  <PassionSkillsCheckboxTooltip>Royals will continue to perform skills they are passionate about even after gaining royal ranks.</PassionSkillsCheckboxTooltip>
+  <MajorAndMinorLabel>Major and Minor</MajorAndMinorLabel>
+  <MajorAndMinorTooltip>Royals will continue to perform both major and minor passion skills that would be disabled. This is the default mod behavior.</MajorAndMinorTooltip>
+  <OnlyMajorLabel>Only Major</OnlyMajorLabel>
+  <OnlyMajorTooltip>Royals will continue to perform only major passion skills that would be disabled. Minor passion skills will be disabled with rank ups.</OnlyMajorTooltip>
+  <RoyalTweaks>Royal Tweaks</RoyalTweaks>
+</LanguageData>
