@@ -17,6 +17,8 @@ namespace TestMod
             harmony.PatchAll();
         }
 
+        //[HarmonyPatch(typeof(RoleWorker_ThroneRoom))]
+
         [HarmonyPatch(typeof(Pawn_RoyaltyTracker))]
         [HarmonyPatch(nameof(Pawn_RoyaltyTracker.CanRequireThroneroom))]
         static class Pawn_RoyaltyTracker_CanRequireThroneroom_Patch
@@ -30,6 +32,7 @@ namespace TestMod
 
                 __result = ___pawn.IsFreeColonist && __instance.allowRoomRequirements && !___pawn.IsQuestLodger();
                 int highestSeniority = 0;
+                bool throneAssigned = false;
                 if (__result)
                 {
                     if(__instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
@@ -46,6 +49,7 @@ namespace TestMod
                                         if(pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
                                         {
                                             highestSeniority = pawn.royalty.MostSeniorTitle.def.seniority;
+                                            if (pawn.ownership.AssignedThrone != null) throneAssigned = true;
                                         }
                                     }
                                 }
@@ -61,7 +65,11 @@ namespace TestMod
                             {
                                 __result = false;
                             }                                                        
-                        }                       
+                        }
+                        if(__instance.MostSeniorTitle.def.seniority == highestSeniority && throneAssigned)
+                        {
+                            __result = false;
+                        }
                     }
                 }               
                 return false;
@@ -74,7 +82,11 @@ namespace TestMod
             {
                 static void Postfix(Pawn __instance,  ref List<WorkTypeDef> __result, bool permanentOnly = false)
                 {                  
-                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills && __instance.royalty != null)
+                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills 
+                        && __instance.royalty != null 
+                        && __instance.royalty.MostSeniorTitle != null 
+                        && __instance.royalty.MostSeniorTitle.def != null 
+                        && __instance.royalty.MostSeniorTitle.def.seniority > 100)
                     {
                         var removeList = new List<WorkTypeDef>();
                         foreach (var workType in __result)
@@ -111,7 +123,11 @@ namespace TestMod
                 static void Postfix(Pawn __instance, WorkTypeDef w, ref bool __result)
                 {
                     // __result = true means the work is disabled and to check further now.
-                    if (__result && LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills && __instance.royalty != null)
+                    if (__result && LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills 
+                        && __instance.royalty != null
+                        && __instance.royalty.MostSeniorTitle != null
+                        && __instance.royalty.MostSeniorTitle.def != null
+                        && __instance.royalty.MostSeniorTitle.def.seniority > 100)
                     {
                         var skills = w.relevantSkills;
 
@@ -141,7 +157,11 @@ namespace TestMod
             {
                 static bool Prefix(Pawn __instance, ref WorkTags __result)
                 {
-                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills && __instance.royalty != null)
+                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills 
+                        && __instance.royalty != null
+                        && __instance.royalty.MostSeniorTitle != null
+                        && __instance.royalty.MostSeniorTitle.def != null
+                        && __instance.royalty.MostSeniorTitle.def.seniority > 100)
                     {
                         var list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
 
@@ -155,7 +175,6 @@ namespace TestMod
                             namelist = __instance.skills.skills.Where(a => a.passion != Passion.None).Select(b => b.def.defName).ToList();
                         }
 
-
                         if (namelist != null && namelist.Any())
                         {
                             var worklist = list.Where(a => a.relevantSkills != null && a.relevantSkills.Any() && namelist.Contains(a.relevantSkills.First().defName)).Select(b => b.workTags);
@@ -166,6 +185,19 @@ namespace TestMod
                                 {
                                     __result &= ~worklistItem;
                                 }
+
+                                // Might need to do this some day
+                                //if (__instance.health != null && __instance.health.hediffSet != null)
+                                //{
+                                //    foreach (Hediff hediff in __instance.health.hediffSet.hediffs)
+                                //    {
+                                //        HediffStage curStage = hediff.CurStage;
+                                //        if (curStage != null)
+                                //        {
+                                //            __result |= curStage.disabledWorkTags;
+                                //        }
+                                //    }
+                                //}
                             }
                         }
 
@@ -228,22 +260,22 @@ namespace TestMod
         {
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
-            listingStandard.Label("-=[ Throne Room Settings ]=-");
-            listingStandard.CheckboxLabeled("Throne Rooms Required Only by Highest Titled Royals", ref settings.throneRoomTweaks, "Only the highest titled noble(s) will require/demand a throne room.");
+            listingStandard.Label("-=[ " + "ThroneRoomSettings".Translate() + " ]=-");
+            listingStandard.CheckboxLabeled("ThroneRoomRequiredByHighestCheckboxLabel".Translate(), ref settings.throneRoomTweaks, "ThroneRoomRequiredByHighestCheckboxTooltip".Translate());
             if (settings.throneRoomTweaks) { 
-                listingStandard.CheckboxLabeled("Royal Spouse Wants Throne Room Too", ref settings.spouseWantsThroneroom, "The royal spouse of the highest titled royal will also demand a throneroom if their rank would normally call for it.");
+                listingStandard.CheckboxLabeled("SpouseOptionLabel".Translate(), ref settings.spouseWantsThroneroom, "SpouseOptionTooltip".Translate());
             }
             listingStandard.Label("");
-            listingStandard.Label("-=[ Royal Passion Skill Settings ]=-");
-            listingStandard.CheckboxLabeled("Restore Disabled Royal Passion Skills", ref settings.willWorkPassionSkills, "Royals will continue to perform skills they are passionate about even after gaining royal ranks.");
+            listingStandard.Label("-=[ " + "RoyalPassionSkillSettings".Translate() + " ]=-");
+            listingStandard.CheckboxLabeled("PassionSkillsCheckboxLabel".Translate(), ref settings.willWorkPassionSkills, "PassionSkillsCheckboxTooltip".Translate());
             if (settings.willWorkPassionSkills)
             {
-                if (listingStandard.RadioButton("Major and Minor", settings.willWorkOnlyMajorPassionSkills == false, 0f, "Royals will continue to perform both major and minor passion skills that would be disabled. This is the default mod behavior."))
+                if (listingStandard.RadioButton("MajorAndMinorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == false, 0f, "MajorAndMinorTooltip".Translate()))
                 {
                     settings.willWorkOnlyMajorPassionSkills = false;
 
                 }
-                if (listingStandard.RadioButton("Only Major", settings.willWorkOnlyMajorPassionSkills == true, 0f, "Royals will continue to perform only major passion skills that would be disabled. Minor passion skills will be disabled with rank ups."))
+                if (listingStandard.RadioButton("OnlyMajorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == true, 0f, "OnlyMajorTooltip".Translate()))
                 {
                     settings.willWorkOnlyMajorPassionSkills = true;
 
@@ -263,7 +295,7 @@ namespace TestMod
         /// <returns>The (translated) mod name.</returns>
         public override string SettingsCategory()
         {
-            return "Royal Tweaks";
+            return "RoyalTweaks".Translate();
         }
     }
 }
