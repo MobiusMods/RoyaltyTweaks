@@ -19,9 +19,9 @@
   <supportedVersions>
     <li>1.1</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.07a ]=-
+  <description>-=[ Royalty Tweaks 1.08 ]=-
   
- * Reduces throneroom demand to the highest ranking royal only, or them and their spouse.
+ * If there is more than one royal with the highest title, the others will stop demanding a throne room when you assign a throne to one of them.
  
- * Restores royal colonist skills for which they are passionate that have been disabled by increasing royal title.</description>
+ * Added Chinese translations to the options menu. </description>
 </ModMetaData>
