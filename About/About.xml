@@ -19,11 +19,11 @@
   <supportedVersions>
     <li>1.1</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.09 ]=-
+  <description>-=[ Royalty Tweaks 1.10 ]=-
   
- * Updated to support conceited royals.
+ * Option to allow all nobles to share a single throne room.
  
- * Addressed Incapable List bug.
+ * Attempted to address issues some people have with saving settings.
  
   </description>
 </ModMetaData>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <ThroneRoomSettings>谒见厅选项</ThroneRoomSettings>
+  <ThroneRoomSharedCheckboxLabel>共享谒见厅</ThroneRoomSharedCheckboxLabel>
+  <ThroneRoomSharedCheckboxTooltip>您可以在一个宝座室中放置任意数量的宝座.</ThroneRoomSharedCheckboxTooltip>
   <ThroneRoomRequiredByHighestCheckboxLabel>仅最高头衔的贵族需求谒见厅</ThroneRoomRequiredByHighestCheckboxLabel>
   <ThroneRoomRequiredByHighestCheckboxTooltip>只有最高头衔的贵族(们)会需求谒见厅。</ThroneRoomRequiredByHighestCheckboxTooltip>
   <SpouseOptionLabel>贵族配偶也需求谒见厅</SpouseOptionLabel>
