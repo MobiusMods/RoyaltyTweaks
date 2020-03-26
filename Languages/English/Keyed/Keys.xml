@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
   <ThroneRoomSettings>Throne Room Settings</ThroneRoomSettings>
+  <ThroneRoomSharedCheckboxLabel>Throne Room is Shared by All</ThroneRoomSharedCheckboxLabel>
+  <ThroneRoomSharedCheckboxTooltip>As many thrones as you likes can be placed in one throne room.</ThroneRoomSharedCheckboxTooltip>
   <ThroneRoomRequiredByHighestCheckboxLabel>Throne Rooms Required Only by Highest Titled Royals</ThroneRoomRequiredByHighestCheckboxLabel>
   <ThroneRoomRequiredByHighestCheckboxTooltip>Only the highest titled noble(s) will require/demand a throne room.</ThroneRoomRequiredByHighestCheckboxTooltip>
   <SpouseOptionLabel>Royal Spouse Wants Throne Room Too</SpouseOptionLabel>
