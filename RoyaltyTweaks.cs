@@ -14,6 +14,7 @@ namespace TestMod
         static RoyaltyTweaks() //our constructor
         {
             var harmony = new Harmony("com.mobius.royaltytweaks");
+            
             harmony.PatchAll();
         }
 
@@ -21,9 +22,9 @@ namespace TestMod
         //"ThroneRoomHasMoreThan1Throne".Translate()
         [HarmonyPatch(typeof(RoomRoleWorker_ThroneRoom))]
         [HarmonyPatch(nameof(RoomRoleWorker_ThroneRoom.Validate))]
-        static class RoomRoleWorker_ThroneRoom_Validate_Patch
+        static class RoomRoleWorker_ThroneRoom_Validate_PatchRoomRoleWorker_ThroneRoom_Validate_Patch
         {
-            static bool Prefix(Room room, string __result)
+            static bool Prefix(Room room, ref List<Building_Throne> ___tmpThrones, ref string __result)
             {
                 if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().throneRoomShared)
                 {
@@ -33,14 +34,25 @@ namespace TestMod
                 if (room == null || room.OutdoorsForWork)
                 {
                     __result = "ThroneMustBePlacedInside".Translate();
-                }  else
-                {
-                    __result = null;
+                    return false;
                 }
+                List<Thing> containedAndAdjacentThings = room.ContainedAndAdjacentThings;
+                string result = "No thrones";
+
+                    for (int i = 0; i < containedAndAdjacentThings.Count; i++)
+                    {
+                        Thing thing = containedAndAdjacentThings[i];
+                        if (thing is Building_Throne)
+                        {
+                        __result = null;
+                        return false;
+                        }
+                    }                   
+                    __result = result;                               
 
                 return false;
             }
-        }
+        }        
 
         [HarmonyPatch(typeof(Pawn_RoyaltyTracker))]
         [HarmonyPatch(nameof(Pawn_RoyaltyTracker.CanRequireThroneroom))]
