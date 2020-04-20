@@ -27,6 +27,24 @@ A. Yep! No problem. It can also be removed at any time without barfing.
 
 
 CHANGELOG
+1.11 - Removed shared throne room stuff because it's now in the vanilla game.
+
+1.10 - * Option to allow all nobles to share a single throne room.
+
+* Attempted to address issues some people have with saving settings.
+
+1.09 - * Updated to support conceited royals.
+
+* Addressed Incapable List bug.
+
+1.08 - * If there is more than one royal with the highest title, the others will stop demanding a throne room when you assign a throne to one of them.
+
+* Added Chinese translations to the options menu.
+
+* Attempted to limit the mod logic to prevent strange behavior in other circumstances.
+
+1.07a - Throne Room adjustments are now optional and controlled in the options menu. Made minor changes to try and make the mod settings turned on by default.
+
 1.07 - Throne Room adjustments are now optional and controlled in the options menu.
 
 1.06 - Resolved Work Tab incompatibility
