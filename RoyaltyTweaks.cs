@@ -10,57 +10,21 @@ namespace TestMod
 {
     [StaticConstructorOnStartup]
     public static class RoyaltyTweaks
-    {        
+    {
         static RoyaltyTweaks() //our constructor
         {
             var harmony = new Harmony("com.mobius.royaltytweaks");
-            
+
             harmony.PatchAll();
         }
-
-        //public static string Validate(Room room)
-        //"ThroneRoomHasMoreThan1Throne".Translate()
-        [HarmonyPatch(typeof(RoomRoleWorker_ThroneRoom))]
-        [HarmonyPatch(nameof(RoomRoleWorker_ThroneRoom.Validate))]
-        static class RoomRoleWorker_ThroneRoom_Validate_PatchRoomRoleWorker_ThroneRoom_Validate_Patch
-        {
-            static bool Prefix(Room room, ref List<Building_Throne> ___tmpThrones, ref string __result)
-            {
-                if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().throneRoomShared)
-                {
-                    return true;
-                }
-
-                if (room == null || room.OutdoorsForWork)
-                {
-                    __result = "ThroneMustBePlacedInside".Translate();
-                    return false;
-                }
-                List<Thing> containedAndAdjacentThings = room.ContainedAndAdjacentThings;
-                string result = "No thrones";
-
-                    for (int i = 0; i < containedAndAdjacentThings.Count; i++)
-                    {
-                        Thing thing = containedAndAdjacentThings[i];
-                        if (thing is Building_Throne)
-                        {
-                        __result = null;
-                        return false;
-                        }
-                    }                   
-                    __result = result;                               
-
-                return false;
-            }
-        }        
 
         [HarmonyPatch(typeof(Pawn_RoyaltyTracker))]
         [HarmonyPatch(nameof(Pawn_RoyaltyTracker.CanRequireThroneroom))]
         static class Pawn_RoyaltyTracker_CanRequireThroneroom_Patch
         {
-            static bool Prefix(Pawn_RoyaltyTracker __instance, Pawn ___pawn,  ref bool __result)
+            static bool Prefix(Pawn_RoyaltyTracker __instance, Pawn ___pawn, ref bool __result)
             {
-                if(!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().throneRoomTweaks || ___pawn.ownership.AssignedThrone != null)
+                if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().throneRoomTweaks || ___pawn.ownership.AssignedThrone != null)
                 {
                     return true;
                 }
@@ -70,7 +34,7 @@ namespace TestMod
                 bool throneAssigned = false;
                 if (__result)
                 {
-                    if(__instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
+                    if (__instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
                     {
                         List<Map> maps = Find.Maps;
                         for (int i = 0; i < maps.Count; i++)
@@ -78,10 +42,10 @@ namespace TestMod
                             if (maps[i].IsPlayerHome)
                             {
                                 foreach (Pawn pawn in maps[i].mapPawns.FreeColonistsSpawned)
-                                {                                    
+                                {
                                     if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null)
                                     {
-                                        if(pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
+                                        if (pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
                                         {
                                             highestSeniority = pawn.royalty.MostSeniorTitle.def.seniority;
                                             if (pawn.ownership.AssignedThrone != null) throneAssigned = true;
@@ -93,20 +57,21 @@ namespace TestMod
                         if (__instance.MostSeniorTitle.def.seniority < highestSeniority)
                         {
                             Pawn spouse = null;
-                            if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().spouseWantsThroneroom){
+                            if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().spouseWantsThroneroom)
+                            {
                                 spouse = ___pawn.GetSpouse();
-                            }                            
+                            }
                             if (spouse == null || spouse.royalty == null || spouse.royalty.MostSeniorTitle == null || spouse.royalty.MostSeniorTitle.def.seniority < highestSeniority)
                             {
                                 __result = false;
-                            }                                                        
+                            }
                         }
-                        if(__instance.MostSeniorTitle.def.seniority == highestSeniority && throneAssigned)
+                        if (__instance.MostSeniorTitle.def.seniority == highestSeniority && throneAssigned)
                         {
                             __result = false;
                         }
                     }
-                }               
+                }
                 return false;
             }
 
@@ -118,21 +83,21 @@ namespace TestMod
                 static bool Prefix(Pawn __instance, ref WorkTags __result)
                 {
                     if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
-                    {                       
+                    {
                         WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryAndTraits : WorkTags.None;
                         WorkTags disabledRoyalTags = WorkTags.None;
 
                         if (__instance.royalty?.MostSeniorTitle?.def?.seniority > 100)
                         {
                             foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
-                            {                               
-                                    if (royalTitle.conceited)
-                                    {
-                                        disabledRoyalTags |= royalTitle.def.disabledWorkTags;
-                                    }                                                              
+                            {
+                                if (royalTitle.conceited)
+                                {
+                                    disabledRoyalTags |= royalTitle.def.disabledWorkTags;
+                                }
                             }
 
-                           
+
 
                             var namelist = new List<string>();
                             if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
@@ -267,7 +232,6 @@ namespace TestMod
         /// </summary>
         ///
         public bool throneRoomTweaks;
-        public bool throneRoomShared;
         public bool spouseWantsThroneroom;
         public bool willWorkPassionSkills;
         public bool willWorkOnlyMajorPassionSkills;
@@ -280,7 +244,6 @@ namespace TestMod
         public override void ExposeData()
         {
             Scribe_Values.Look(ref throneRoomTweaks, "throneRoomTweaks", true, true);
-            Scribe_Values.Look(ref throneRoomShared, "throneRoomShared", true, true);            
             Scribe_Values.Look(ref spouseWantsThroneroom, "spouseWantsThroneroom", true, true);
             Scribe_Values.Look(ref willWorkPassionSkills, "willWorkPassionSkills", true, true);
             Scribe_Values.Look(ref willWorkOnlyMajorPassionSkills, "willWorkOnlyMajorPassionSkills", false, true);
@@ -314,9 +277,9 @@ namespace TestMod
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
             listingStandard.Label("-=[ " + "ThroneRoomSettings".Translate() + " ]=-");
-            listingStandard.CheckboxLabeled("ThroneRoomSharedCheckboxLabel".Translate(), ref settings.throneRoomShared, "ThroneRoomSharedCheckboxTooltip".Translate());
             listingStandard.CheckboxLabeled("ThroneRoomRequiredByHighestCheckboxLabel".Translate(), ref settings.throneRoomTweaks, "ThroneRoomRequiredByHighestCheckboxTooltip".Translate());
-            if (settings.throneRoomTweaks) { 
+            if (settings.throneRoomTweaks)
+            {
                 listingStandard.CheckboxLabeled("SpouseOptionLabel".Translate(), ref settings.spouseWantsThroneroom, "SpouseOptionTooltip".Translate());
             }
             listingStandard.Label("");
@@ -334,8 +297,8 @@ namespace TestMod
                     settings.willWorkOnlyMajorPassionSkills = true;
 
                 }
-            }            
-            
+            }
+
             //listingStandard.Label("exampleFloatExplanation");
             //settings.exampleFloat = listingStandard.Slider(settings.exampleFloat, 100f, 300f);
             listingStandard.End();

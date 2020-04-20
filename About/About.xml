@@ -19,11 +19,9 @@
   <supportedVersions>
     <li>1.1</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.10 ]=-
+  <description>-=[ Royalty Tweaks 1.11 ]=-
   
- * Option to allow all nobles to share a single throne room.
- 
- * Attempted to address issues some people have with saving settings.
+* Remove shared throneroom settings that are now redundant.
  
   </description>
 </ModMetaData>
