@@ -27,6 +27,7 @@ A. Yep! No problem. It can also be removed at any time without barfing.
 
 
 CHANGELOG
+
 1.11 - Removed shared throne room stuff because it's now in the vanilla game.
 
 1.10 - * Option to allow all nobles to share a single throne room.
