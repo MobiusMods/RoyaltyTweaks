@@ -2,7 +2,8 @@
 
 Limits throne room requirement to highest ranking royal. Also re-enables passionate skills.
 
-Royalty Tweaks 1.07
+Royalty Tweaks 1.11
+
 What noble in their right mind would let their knights each have their own throne room? Not mine, that's for sure!
 
 This mod removes the demand by nobles other than the highest ranking in your colony to have a throne room. You can still give them one if you like but it's entirely optional.
