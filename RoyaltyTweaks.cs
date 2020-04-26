@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using UnityEngine;
+using System.Runtime.Remoting.Messaging;
 
 namespace TestMod
 {
@@ -13,6 +14,7 @@ namespace TestMod
     {
         static RoyaltyTweaks() //our constructor
         {
+            //Harmony.DEBUG = true;
             var harmony = new Harmony("com.mobius.royaltytweaks");
 
             harmony.PatchAll();
@@ -73,156 +75,227 @@ namespace TestMod
                     }
                 }
                 return false;
-            }
+            }           
+        }
 
-            // 		public WorkTags CombinedDisabledWorkTags
-            [HarmonyPatch(typeof(Pawn))]
-            [HarmonyPatch("CombinedDisabledWorkTags", MethodType.Getter)]
-            static class Pawn_CombinedDisabledWorkTags_Patch
+        #region Speech Inspiration
+        private static bool PositiveOutcome(ThoughtDef outcome)
+        {
+            return outcome == ThoughtDefOf.EncouragingSpeech || outcome == ThoughtDefOf.InspirationalSpeech;
+        }
+
+        // Token: 0x0600319B RID: 12699 RVA: 0x00113CE0 File Offset: 0x00111EE0
+        [HarmonyPatch(typeof(LordJob_Joinable_Speech))]
+        [HarmonyPatch("ApplyOutcome")]
+        static class LordJob_JoinableSpeech_ApplyOutcome_Patch
+        {
+            static bool Prefix(LordJob_Joinable_Speech __instance, Pawn ___organizer, float progress)
             {
-                static bool Prefix(Pawn __instance, ref WorkTags __result)
+                if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().speechesInspire)
                 {
-                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
-                    {
-                        WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryAndTraits : WorkTags.None;
-                        WorkTags disabledRoyalTags = WorkTags.None;
-
-                        if (__instance.royalty?.MostSeniorTitle?.def?.seniority > 100)
-                        {
-                            foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
-                            {
-                                if (royalTitle.conceited)
-                                {
-                                    disabledRoyalTags |= royalTitle.def.disabledWorkTags;
-                                }
-                            }
-
-
-
-                            var namelist = new List<string>();
-                            if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
-                            {
-                                namelist = __instance.skills.skills.Where(a => a.passion == Passion.Major).Select(b => b.def.defName).ToList();
-                            }
-                            else
-                            {
-                                namelist = __instance.skills.skills.Where(a => a.passion != Passion.None).Select(b => b.def.defName).ToList();
-                            }
-
-                            var list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
-                            if (namelist != null && namelist.Any())
-                            {
-                                var worklist = list.Where(a => a.relevantSkills != null && a.relevantSkills.Any() && namelist.Contains(a.relevantSkills.First().defName)).Select(b => b.workTags);
-
-                                if (worklist != null && worklist.Any())
-                                {
-                                    foreach (var worklistItem in worklist)
-                                    {
-                                        disabledRoyalTags &= ~worklistItem;
-                                    }
-
-                                }
-                            }
-
-
-                        }
-                        workTags |= disabledRoyalTags;
-
-                        if (__instance.health != null && __instance.health.hediffSet != null)
-                        {
-                            foreach (Hediff hediff in __instance.health.hediffSet.hediffs)
-                            {
-                                HediffStage curStage = hediff.CurStage;
-                                if (curStage != null)
-                                {
-                                    workTags |= curStage.disabledWorkTags;
-                                }
-                            }
-                        }
-                        __result = workTags;
-
-                        return false;
-                    }
                     return true;
                 }
-            }
 
-            //public List<WorkTypeDef> GetDisabledWorkTypes(bool permanentOnly = false)
-            [HarmonyPatch(typeof(Pawn))]
-            [HarmonyPatch(nameof(Pawn.GetDisabledWorkTypes))]
-            static class GetDisabledWorkTypes_Patch
-            {
-                static void Postfix(Pawn __instance, ref List<WorkTypeDef> __result, bool permanentOnly = false)
+                    if (progress < 0.5f)
                 {
-                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills
-                        && __instance.IsColonist
-                        && __instance.royalty?.MostSeniorTitle?.def?.seniority > 100
-                        && __instance.royalty.MostSeniorTitle.conceited)
+                    return true;
+                }
+                ThoughtDef key = LordJob_Joinable_Speech.OutcomeThoughtChances.RandomElementByWeight(delegate (KeyValuePair<ThoughtDef, float> t)
+                {
+                    if (!PositiveOutcome(t.Key))
                     {
-                        var removeList = new List<WorkTypeDef>();
-                        foreach (var workType in __result)
+                        return LordJob_Joinable_Speech.OutcomeThoughtChances[t.Key];
+                    }
+                    return LordJob_Joinable_Speech.OutcomeThoughtChances[t.Key] * ___organizer.GetStatValue(StatDefOf.SocialImpact, true) * progress;
+                }).Key;
+                foreach (Pawn pawn in __instance.lord.ownedPawns)
+                {
+                    if (pawn != ___organizer && ___organizer.Position.InHorDistOf(pawn.Position, 18f))
+                    {
+                        pawn.needs.mood.thoughts.memories.TryGainMemory(key, ___organizer);
+                        if (key == ThoughtDefOf.InspirationalSpeech && Rand.Value <= LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().speechesInspireChance)
                         {
-                            var skills = workType.relevantSkills;
-
-                            if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+                            InspirationDef randomAvailableInspirationDef = (from x in DefDatabase<InspirationDef>.AllDefsListForReading
+                                                                            where x.Worker.InspirationCanOccur(pawn)
+                                                                            select x).RandomElementByWeightWithFallback((InspirationDef x) => x.Worker.CommonalityFor(pawn), null);
+                            if (randomAvailableInspirationDef != null)
                             {
-                                // Will only work Major
-                                if (!__instance.skills.skills.Any(a => a.passion == Passion.Major && skills.Contains(a.def)))
-                                {
-                                    removeList.Add(workType);
-                                }
-                            }
-                            else
-                            {
-                                // Will work all passion skills
-                                if (!__instance.skills.skills.Any(a => a.passion != Passion.None && skills.Contains(a.def)))
-                                {
-                                    removeList.Add(workType);
-                                }
+                                pawn.mindState.inspirationHandler.TryStartInspiration(randomAvailableInspirationDef);                             
                             }
                         }
-                        if (!removeList.NullOrEmpty())
-                        {
-                            __result = removeList;
-                        }
+                        
                     }
                 }
+                TaggedString taggedString = "LetterFinishedSpeech".Translate(___organizer.Named("ORGANIZER")).CapitalizeFirst() + " " + ("Letter" + key.defName).Translate();
+                if (progress < 1f)
+                {
+                    taggedString += "\n\n" + "LetterSpeechInterrupted".Translate(progress.ToStringPercent(), ___organizer.Named("ORGANIZER"));
+                }
+                Find.LetterStack.ReceiveLetter(key.stages[0].LabelCap, taggedString, PositiveOutcome(key) ? LetterDefOf.PositiveEvent : LetterDefOf.NegativeEvent, ___organizer, null, null, null, null);
+                Ability ability = ___organizer.abilities.GetAbility(AbilityDefOf.Speech);
+                RoyalTitle mostSeniorTitle = ___organizer.royalty.MostSeniorTitle;
+                if (ability != null && mostSeniorTitle != null)
+                {
+                    ability.StartCooldown(mostSeniorTitle.def.speechCooldown.RandomInRange);
+                }
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Conceited Disabled Work
+        [HarmonyPatch(typeof(Pawn))]
+        [HarmonyPatch("CombinedDisabledWorkTags", MethodType.Getter)]
+        static class Pawn_CombinedDisabledWorkTags_Patch
+        {
+            private static string nameof(Action<float> applyOutcome)
+            {
+                throw new NotImplementedException();
             }
 
-            [HarmonyPatch(typeof(Pawn))]
-            [HarmonyPatch(nameof(Pawn.WorkTypeIsDisabled))]
-            static class WorkTypeIsDisabled_Patch
+            static bool Prefix(Pawn __instance, ref WorkTags __result)
             {
-                static void Postfix(Pawn __instance, WorkTypeDef w, ref bool __result)
+                if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
                 {
-                    // __result = true means the work is disabled and to check further now.
-                    if (__result && LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills
-                        && __instance.IsColonist
-                         && __instance.royalty?.MostSeniorTitle?.def?.seniority > 100
-                         && __instance.royalty.MostSeniorTitle.conceited)
+                    WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryAndTraits : WorkTags.None;
+                    WorkTags disabledRoyalTags = WorkTags.None;
+
+                    if (__instance.royalty?.MostSeniorTitle?.def?.seniority > 100)
                     {
-                        var skills = w.relevantSkills;
+                        foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
+                        {
+                            if (royalTitle.conceited)
+                            {
+                                disabledRoyalTags |= royalTitle.def.disabledWorkTags;
+                            }
+                        }
+
+
+
+                        var namelist = new List<string>();
+                        if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+                        {
+                            namelist = __instance.skills.skills.Where(a => a.passion == Passion.Major).Select(b => b.def.defName).ToList();
+                        }
+                        else
+                        {
+                            namelist = __instance.skills.skills.Where(a => a.passion != Passion.None).Select(b => b.def.defName).ToList();
+                        }
+
+                        var list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
+                        if (namelist != null && namelist.Any())
+                        {
+                            var worklist = list.Where(a => a.relevantSkills != null && a.relevantSkills.Any() && namelist.Contains(a.relevantSkills.First().defName)).Select(b => b.workTags);
+
+                            if (worklist != null && worklist.Any())
+                            {
+                                foreach (var worklistItem in worklist)
+                                {
+                                    disabledRoyalTags &= ~worklistItem;
+                                }
+
+                            }
+                        }
+
+
+                    }
+                    workTags |= disabledRoyalTags;
+
+                    if (__instance.health != null && __instance.health.hediffSet != null)
+                    {
+                        foreach (Hediff hediff in __instance.health.hediffSet.hediffs)
+                        {
+                            HediffStage curStage = hediff.CurStage;
+                            if (curStage != null)
+                            {
+                                workTags |= curStage.disabledWorkTags;
+                            }
+                        }
+                    }
+                    __result = workTags;
+
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Pawn))]
+        [HarmonyPatch(nameof(Pawn.GetDisabledWorkTypes))]
+        static class GetDisabledWorkTypes_Patch
+        {
+            static void Postfix(Pawn __instance, ref List<WorkTypeDef> __result, bool permanentOnly = false)
+            {
+                if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills
+                    && __instance.IsColonist
+                    && __instance.royalty?.MostSeniorTitle?.def?.seniority > 100
+                    && __instance.royalty.MostSeniorTitle.conceited)
+                {
+                    var removeList = new List<WorkTypeDef>();
+                    foreach (var workType in __result)
+                    {
+                        var skills = workType.relevantSkills;
 
                         if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
                         {
-                            // Work only major passion skills
-                            if (__instance.skills.skills.Any(a => a.passion == Passion.Major && skills.Contains(a.def)))
+                            // Will only work Major
+                            if (!__instance.skills.skills.Any(a => a.passion == Passion.Major && skills.Contains(a.def)))
                             {
-                                __result = false;
+                                removeList.Add(workType);
                             }
                         }
                         else
                         {
-                            // Work all passion skills.
-                            if (__instance.skills.skills.Any(a => a.passion != Passion.None && skills.Contains(a.def)))
+                            // Will work all passion skills
+                            if (!__instance.skills.skills.Any(a => a.passion != Passion.None && skills.Contains(a.def)))
                             {
-                                __result = false;
+                                removeList.Add(workType);
                             }
+                        }
+                    }
+                    if (!removeList.NullOrEmpty())
+                    {
+                        __result = removeList;
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Pawn))]
+        [HarmonyPatch(nameof(Pawn.WorkTypeIsDisabled))]
+        static class WorkTypeIsDisabled_Patch
+        {
+            static void Postfix(Pawn __instance, WorkTypeDef w, ref bool __result)
+            {
+                // __result = true means the work is disabled and to check further now.
+                if (__result && LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills
+                    && __instance.IsColonist
+                     && __instance.royalty?.MostSeniorTitle?.def?.seniority > 100
+                     && __instance.royalty.MostSeniorTitle.conceited)
+                {
+                    var skills = w.relevantSkills;
+
+                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+                    {
+                        // Work only major passion skills
+                        if (__instance.skills.skills.Any(a => a.passion == Passion.Major && skills.Contains(a.def)))
+                        {
+                            __result = false;
+                        }
+                    }
+                    else
+                    {
+                        // Work all passion skills.
+                        if (__instance.skills.skills.Any(a => a.passion != Passion.None && skills.Contains(a.def)))
+                        {
+                            __result = false;
                         }
                     }
                 }
             }
         }
+        #endregion
     }
 
     public class RoyaltyTweaksSettings : ModSettings
@@ -235,6 +308,8 @@ namespace TestMod
         public bool spouseWantsThroneroom;
         public bool willWorkPassionSkills;
         public bool willWorkOnlyMajorPassionSkills;
+        public bool speechesInspire;
+        public float speechesInspireChance;
         //public float exampleFloat = 200f;
         //public List<Pawn> exampleListOfPawns = new List<Pawn>();
 
@@ -247,7 +322,9 @@ namespace TestMod
             Scribe_Values.Look(ref spouseWantsThroneroom, "spouseWantsThroneroom", true, true);
             Scribe_Values.Look(ref willWorkPassionSkills, "willWorkPassionSkills", true, true);
             Scribe_Values.Look(ref willWorkOnlyMajorPassionSkills, "willWorkOnlyMajorPassionSkills", false, true);
-            //Scribe_Values.Look(ref exampleFloat, "exampleFloat", 200f);
+
+            Scribe_Values.Look(ref speechesInspire, "speechesInspire", true, true);
+            Scribe_Values.Look(ref speechesInspireChance, "inspiredChance", 0.5f, true);
             //Scribe_Collections.Look(ref exampleListOfPawns, "exampleListOfPawns", LookMode.Reference);
             base.ExposeData();
         }
@@ -298,9 +375,16 @@ namespace TestMod
 
                 }
             }
-
-            //listingStandard.Label("exampleFloatExplanation");
-            //settings.exampleFloat = listingStandard.Slider(settings.exampleFloat, 100f, 300f);
+            listingStandard.Label("");
+            listingStandard.Label("-=[ " + "SpeechSettings".Translate() + " ]=-");
+            listingStandard.CheckboxLabeled("SpeechSettingsCheckboxLabel".Translate(), ref settings.speechesInspire, "SpeechSettingsCheckboxTooltip".Translate());
+            if (settings.speechesInspire)
+            {               
+                listingStandard.Label("SpeechInspireChanceLabel".Translate() + ": " + String.Format("{0:P2}", settings.speechesInspireChance), -1f,  "SpeechInspireChanceTooltip".Translate());
+                //settings.speechesInspireChance = Widgets.HorizontalSlider(new Rect(10, 10, 100, 10), settings.speechesInspireChance, 0.1f, 1f);                            
+                settings.speechesInspireChance = listingStandard.Slider(settings.speechesInspireChance, 0.1f, 1f);
+            }
+            
             listingStandard.End();
             base.DoSettingsWindowContents(inRect);
         }

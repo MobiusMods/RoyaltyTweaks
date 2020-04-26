@@ -19,9 +19,9 @@
   <supportedVersions>
     <li>1.1</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.11 ]=-
+  <description>-=[ Royalty Tweaks 1.12 ]=-
   
-* Remove shared throneroom settings that are now redundant.
+* Inspirational speeches can trigger skill inspiration in listeners.
  
   </description>
 </ModMetaData>

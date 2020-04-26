@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
-  <ThroneRoomSettings>Throne Room Settings</ThroneRoomSettings>
-  <ThroneRoomSharedCheckboxLabel>Throne Room is Shared by All</ThroneRoomSharedCheckboxLabel>
-  <ThroneRoomSharedCheckboxTooltip>As many thrones as you likes can be placed in one throne room.</ThroneRoomSharedCheckboxTooltip>
+  <ThroneRoomSettings>Throne Room Settings</ThroneRoomSettings> 
   <ThroneRoomRequiredByHighestCheckboxLabel>Throne Rooms Required Only by Highest Titled Royals</ThroneRoomRequiredByHighestCheckboxLabel>
   <ThroneRoomRequiredByHighestCheckboxTooltip>Only the highest titled noble(s) will require/demand a throne room.</ThroneRoomRequiredByHighestCheckboxTooltip>
   <SpouseOptionLabel>Royal Spouse Wants Throne Room Too</SpouseOptionLabel>
@@ -15,4 +13,9 @@
   <OnlyMajorLabel>Only Major</OnlyMajorLabel>
   <OnlyMajorTooltip>Royals will continue to perform only major passion skills that would be disabled. Minor passion skills will be disabled with rank ups.</OnlyMajorTooltip>
   <RoyalTweaks>Royal Tweaks</RoyalTweaks>
+  <SpeechSettings>Speech Settings</SpeechSettings>
+  <SpeechSettingsCheckboxLabel>Inspirational Speeches Can Inspire Skills</SpeechSettingsCheckboxLabel>
+  <SpeechSettingsCheckboxTooltip>When selected, speeches that are Inspirational have a chance to trigger inspired states in speech attendees.</SpeechSettingsCheckboxTooltip>
+  <SpeechInspireChanceLabel>Chance Inspirational Speech Inspires Colonists</SpeechInspireChanceLabel>
+  <SpeechInspireChanceTooltip>When an Inspirational speech completes, this is the chance that an attendee will gain a random skill inspiration. 10% is the minimum chance.</SpeechInspireChanceTooltip>
 </LanguageData>
