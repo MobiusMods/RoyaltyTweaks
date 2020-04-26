@@ -15,7 +15,7 @@
   <RoyalTweaks>Royal Tweaks</RoyalTweaks>
   <SpeechSettings>Speech Settings</SpeechSettings>
   <SpeechSettingsCheckboxLabel>Inspirational Speeches Can Inspire Skills</SpeechSettingsCheckboxLabel>
-  <SpeechSettingsCheckboxTooltip>When selected, speeches that are Inspirational have a chance to trigger inspired states in speech attendees.</SpeechSettingsCheckboxTooltip>
+  <SpeechSettingsCheckboxTooltip>When selected, speeches that are Inspirational have a chance to trigger inspired skill states in speech attendees.</SpeechSettingsCheckboxTooltip>
   <SpeechInspireChanceLabel>Chance Inspirational Speech Inspires Colonists</SpeechInspireChanceLabel>
   <SpeechInspireChanceTooltip>When an Inspirational speech completes, this is the chance that an attendee will gain a random skill inspiration. 10% is the minimum chance.</SpeechInspireChanceTooltip>
 </LanguageData>
