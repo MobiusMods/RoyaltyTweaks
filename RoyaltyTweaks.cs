@@ -75,7 +75,7 @@ namespace TestMod
                     }
                 }
                 return false;
-            }           
+            }
         }
 
         #region Speech Inspiration
@@ -96,7 +96,7 @@ namespace TestMod
                     return true;
                 }
 
-                    if (progress < 0.5f)
+                if (progress < 0.5f)
                 {
                     return true;
                 }
@@ -120,10 +120,10 @@ namespace TestMod
                                                                             select x).RandomElementByWeightWithFallback((InspirationDef x) => x.Worker.CommonalityFor(pawn), null);
                             if (randomAvailableInspirationDef != null)
                             {
-                                pawn.mindState.inspirationHandler.TryStartInspiration(randomAvailableInspirationDef);                             
+                                pawn.mindState.inspirationHandler.TryStartInspiration(randomAvailableInspirationDef);
                             }
                         }
-                        
+
                     }
                 }
                 TaggedString taggedString = "LetterFinishedSpeech".Translate(___organizer.Named("ORGANIZER")).CapitalizeFirst() + " " + ("Letter" + key.defName).Translate();
@@ -142,6 +142,19 @@ namespace TestMod
             }
         }
 
+        #endregion
+
+        #region Authority Settings
+        [HarmonyPatch(typeof(Need_Authority))]
+        [HarmonyPatch("FallPerDay", MethodType.Getter)]
+        static class Need_Authority_FallPerDay_Patch
+        {
+            static void Postfix(ref float __result)
+            {
+                if (__result == 0f) return;                
+                __result = LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().authorityFallPerDayMultiplier * __result;
+            }
+        }
         #endregion
 
         #region Conceited Disabled Work
@@ -310,6 +323,7 @@ namespace TestMod
         public bool willWorkOnlyMajorPassionSkills;
         public bool speechesInspire;
         public float speechesInspireChance;
+        public float authorityFallPerDayMultiplier;
         //public float exampleFloat = 200f;
         //public List<Pawn> exampleListOfPawns = new List<Pawn>();
 
@@ -325,6 +339,8 @@ namespace TestMod
 
             Scribe_Values.Look(ref speechesInspire, "speechesInspire", true, true);
             Scribe_Values.Look(ref speechesInspireChance, "inspiredChance", 0.5f, true);
+
+            Scribe_Values.Look(ref authorityFallPerDayMultiplier, "authorityFallPerDayMultiplier", 1f, true);
             //Scribe_Collections.Look(ref exampleListOfPawns, "exampleListOfPawns", LookMode.Reference);
             base.ExposeData();
         }
@@ -379,12 +395,18 @@ namespace TestMod
             listingStandard.Label("-=[ " + "SpeechSettings".Translate() + " ]=-");
             listingStandard.CheckboxLabeled("SpeechSettingsCheckboxLabel".Translate(), ref settings.speechesInspire, "SpeechSettingsCheckboxTooltip".Translate());
             if (settings.speechesInspire)
-            {               
-                listingStandard.Label("SpeechInspireChanceLabel".Translate() + ": " + String.Format("{0:P2}", settings.speechesInspireChance), -1f,  "SpeechInspireChanceTooltip".Translate());
+            {
+                listingStandard.Label("SpeechInspireChanceLabel".Translate() + ": " + String.Format("{0:P2}", settings.speechesInspireChance), -1f, "SpeechInspireChanceTooltip".Translate());
                 //settings.speechesInspireChance = Widgets.HorizontalSlider(new Rect(10, 10, 100, 10), settings.speechesInspireChance, 0.1f, 1f);                            
                 settings.speechesInspireChance = listingStandard.Slider(settings.speechesInspireChance, 0.1f, 1f);
             }
-            
+
+            listingStandard.Label("");
+            listingStandard.Label("-=[ " + "AuthoritySettings".Translate() + " ]=-");
+
+            listingStandard.Label("AuthorityFallPerDayMultiplierLabel".Translate() + ": " + String.Format("{0:P2}", settings.authorityFallPerDayMultiplier), -1f, "AuthorityFallPerDayMultiplierTooltip".Translate());
+            settings.authorityFallPerDayMultiplier = listingStandard.Slider(settings.authorityFallPerDayMultiplier, 0f, 1f);
+
             listingStandard.End();
             base.DoSettingsWindowContents(inRect);
         }
