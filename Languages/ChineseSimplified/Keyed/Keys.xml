@@ -4,7 +4,7 @@
   <ThroneRoomSharedCheckboxLabel>共用谒见厅</ThroneRoomSharedCheckboxLabel>
   <ThroneRoomSharedCheckboxTooltip>单个谒见厅可放置多张宝座。</ThroneRoomSharedCheckboxTooltip>
   <ThroneRoomRequiredByHighestCheckboxLabel>仅最高头衔的贵族需求谒见厅</ThroneRoomRequiredByHighestCheckboxLabel>
-  <ThroneRoomRequiredByHighestCheckboxTooltip>只有最高头衔的贵族(们)会需求谒见厅。</ThroneRoomRequiredByHighestCheckboxTooltip>
+  <ThroneRoomRequiredByHighestCheckboxTooltip>只有最高头衔的贵族(们)需求谒见厅。</ThroneRoomRequiredByHighestCheckboxTooltip>
   <SpouseOptionLabel>贵族配偶也需求谒见厅</SpouseOptionLabel>
   <SpouseOptionTooltip>若最高头衔贵族的配偶的贵族级别需求谒见厅，则也会要求符合自身爵位的谒见厅。</SpouseOptionTooltip>
   <RoyalPassionSkillSettings>贵族兴趣技能设置</RoyalPassionSkillSettings>
@@ -15,4 +15,12 @@
   <OnlyMajorLabel>仅狂热</OnlyMajorLabel>
   <OnlyMajorTooltip>贵族在晋升后仍可进行技能兴趣度为狂热的相关工作，而非原设定的禁止；技能兴趣度为好奇的相关工作会被正常禁止。</OnlyMajorTooltip>
   <RoyalTweaks>皇权设定调整</RoyalTweaks>
+  <SpeechSettings>演讲设定</SpeechSettings>
+  <SpeechSettingsCheckboxLabel>激情澎湃的演说可激发灵感</SpeechSettingsCheckboxLabel>
+  <SpeechSettingsCheckboxTooltip>启用后，激情澎湃的演说有几率激发听众的灵感。</SpeechSettingsCheckboxTooltip>
+  <SpeechInspireChanceLabel>演说激发灵感几率</SpeechInspireChanceLabel>
+  <SpeechInspireChanceTooltip>一场激情澎湃的演说结束后，激发听众随机获得一个灵感的几率。可选最小激发几率为10%。</SpeechInspireChanceTooltip>
+  <AuthoritySettings>威严值设定</AuthoritySettings>
+  <AuthorityFallPerDayMultiplierLabel>威严值下降速率</AuthorityFallPerDayMultiplierLabel>
+  <AuthorityFallPerDayMultiplierTooltip>殖民者威严值的下降速率会乘以该数值。游戏默认为100%。调整为50%意味着下降速度减半。0%则代表贵族没有威严需求，也就不会衰减了。</AuthorityFallPerDayMultiplierTooltip>
 </LanguageData>
