@@ -18,4 +18,7 @@
   <SpeechSettingsCheckboxTooltip>When selected, speeches that are Inspirational have a chance to trigger inspired skill states in speech attendees.</SpeechSettingsCheckboxTooltip>
   <SpeechInspireChanceLabel>Chance Inspirational Speech Inspires Colonists</SpeechInspireChanceLabel>
   <SpeechInspireChanceTooltip>When an Inspirational speech completes, this is the chance that an attendee will gain a random skill inspiration. 10% is the minimum chance.</SpeechInspireChanceTooltip>
+  <AuthoritySettings>Authority Settings</AuthoritySettings>
+  <AuthorityFallPerDayMultiplierLabel>Authority Fall Per Day Mulitplier</AuthorityFallPerDayMultiplierLabel>
+  <AuthorityFallPerDayMultiplierTooltip>The amount Authority would normally fall per day is multiplied by this. 100% is the normal default rate. 50% means it falls 50% slower. 0% means it never falls and the Royal will never have Authority need.</AuthorityFallPerDayMultiplierTooltip>
 </LanguageData>
