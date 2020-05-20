@@ -19,9 +19,11 @@
   <supportedVersions>
     <li>1.1</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.12 ]=-
+  <description>-=[ Royalty Tweaks 1.14 ]=-
   
-* Inspirational speeches can trigger skill inspiration in listeners.
+* Authority code removed
+
+* Renamed obsolete method names to new names
  
   </description>
 </ModMetaData>

@@ -31,7 +31,8 @@ namespace TestMod
                     return true;
                 }
 
-                __result = ___pawn.IsFreeColonist && __instance.allowRoomRequirements && !___pawn.IsQuestLodger();
+                __result = ___pawn.IsFreeColonist && __instance.allowRoomRequirements && !___pawn.IsQuestLodger() && (___pawn.MapHeld?.IsPlayerHome ?? false);
+
                 int highestSeniority = 0;
                 bool throneAssigned = false;
                 if (__result)
@@ -120,7 +121,7 @@ namespace TestMod
                                                                             select x).RandomElementByWeightWithFallback((InspirationDef x) => x.Worker.CommonalityFor(pawn), null);
                             if (randomAvailableInspirationDef != null)
                             {
-                                pawn.mindState.inspirationHandler.TryStartInspiration(randomAvailableInspirationDef);
+                                pawn.mindState.inspirationHandler.TryStartInspiration_NewTemp(randomAvailableInspirationDef);
                             }
                         }
 
@@ -144,18 +145,7 @@ namespace TestMod
 
         #endregion
 
-        #region Authority Settings
-        [HarmonyPatch(typeof(Need_Authority))]
-        [HarmonyPatch("FallPerDay", MethodType.Getter)]
-        static class Need_Authority_FallPerDay_Patch
-        {
-            static void Postfix(ref float __result)
-            {
-                if (__result == 0f) return;                
-                __result = LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().authorityFallPerDayMultiplier * __result;
-            }
-        }
-        #endregion
+
 
         #region Conceited Disabled Work
         [HarmonyPatch(typeof(Pawn))]
@@ -339,8 +329,6 @@ namespace TestMod
 
             Scribe_Values.Look(ref speechesInspire, "speechesInspire", true, true);
             Scribe_Values.Look(ref speechesInspireChance, "inspiredChance", 0.5f, true);
-
-            Scribe_Values.Look(ref authorityFallPerDayMultiplier, "authorityFallPerDayMultiplier", 1f, true);
             //Scribe_Collections.Look(ref exampleListOfPawns, "exampleListOfPawns", LookMode.Reference);
             base.ExposeData();
         }
@@ -380,12 +368,12 @@ namespace TestMod
             listingStandard.CheckboxLabeled("PassionSkillsCheckboxLabel".Translate(), ref settings.willWorkPassionSkills, "PassionSkillsCheckboxTooltip".Translate());
             if (settings.willWorkPassionSkills)
             {
-                if (listingStandard.RadioButton("MajorAndMinorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == false, 0f, "MajorAndMinorTooltip".Translate()))
+                if (listingStandard.RadioButton_NewTemp("MajorAndMinorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == false, 0f, "MajorAndMinorTooltip".Translate()))
                 {
                     settings.willWorkOnlyMajorPassionSkills = false;
 
                 }
-                if (listingStandard.RadioButton("OnlyMajorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == true, 0f, "OnlyMajorTooltip".Translate()))
+                if (listingStandard.RadioButton_NewTemp("OnlyMajorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == true, 0f, "OnlyMajorTooltip".Translate()))
                 {
                     settings.willWorkOnlyMajorPassionSkills = true;
 
@@ -399,13 +387,7 @@ namespace TestMod
                 listingStandard.Label("SpeechInspireChanceLabel".Translate() + ": " + String.Format("{0:P2}", settings.speechesInspireChance), -1f, "SpeechInspireChanceTooltip".Translate());
                 //settings.speechesInspireChance = Widgets.HorizontalSlider(new Rect(10, 10, 100, 10), settings.speechesInspireChance, 0.1f, 1f);                            
                 settings.speechesInspireChance = listingStandard.Slider(settings.speechesInspireChance, 0.1f, 1f);
-            }
-
-            listingStandard.Label("");
-            listingStandard.Label("-=[ " + "AuthoritySettings".Translate() + " ]=-");
-
-            listingStandard.Label("AuthorityFallPerDayMultiplierLabel".Translate() + ": " + String.Format("{0:P2}", settings.authorityFallPerDayMultiplier), -1f, "AuthorityFallPerDayMultiplierTooltip".Translate());
-            settings.authorityFallPerDayMultiplier = listingStandard.Slider(settings.authorityFallPerDayMultiplier, 0f, 1f);
+            }         
 
             listingStandard.End();
             base.DoSettingsWindowContents(inRect);
