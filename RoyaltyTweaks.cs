@@ -39,24 +39,18 @@ namespace TestMod
                 {
                     if (__instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
                     {
-                        List<Map> maps = Find.Maps;
-                        for (int i = 0; i < maps.Count; i++)
+                        foreach (Pawn pawn in PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_FreeColonists)
                         {
-                            if (maps[i].IsPlayerHome)
+                            if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null)
                             {
-                                foreach (Pawn pawn in maps[i].mapPawns.FreeColonistsSpawned)
+                                if (pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
                                 {
-                                    if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null)
-                                    {
-                                        if (pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
-                                        {
-                                            highestSeniority = pawn.royalty.MostSeniorTitle.def.seniority;
-                                            if (pawn.ownership.AssignedThrone != null) throneAssigned = true;
-                                        }
-                                    }
+                                    highestSeniority = pawn.royalty.MostSeniorTitle.def.seniority;
+                                    if (pawn.ownership.AssignedThrone != null) throneAssigned = true;
                                 }
                             }
                         }
+
                         if (__instance.MostSeniorTitle.def.seniority < highestSeniority)
                         {
                             Pawn spouse = null;
@@ -73,6 +67,7 @@ namespace TestMod
                         {
                             __result = false;
                         }
+
                     }
                 }
                 return false;
