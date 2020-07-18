@@ -19,11 +19,9 @@
   <supportedVersions>
     <li>1.1</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.14 ]=-
+  <description>-=[ Royalty Tweaks 1.15 ]=-
   
-* Authority code removed
-
-* Renamed obsolete method names to new names
+* Throneroom needs don't change when the highest ranking royal is traveling away from their home.
  
   </description>
 </ModMetaData>
