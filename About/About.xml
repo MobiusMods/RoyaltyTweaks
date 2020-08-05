@@ -18,10 +18,11 @@
   </loadAfter>
   <supportedVersions>
     <li>1.1</li>
+    <li>1.2</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.15 ]=-
+  <description>-=[ Royalty Tweaks 1.16 ]=-
   
-* Throneroom needs don't change when the highest ranking royal is traveling away from their home.
+* Removed Speech Inspiration after its addition to core Royalty DLC
  
   </description>
 </ModMetaData>
