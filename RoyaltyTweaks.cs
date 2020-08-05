@@ -1,4 +1,4 @@
-﻿using RimWorld;
+using RimWorld;
 using HarmonyLib;
 using Verse;
 using System.Collections.Generic;
@@ -72,75 +72,7 @@ namespace TestMod
                 }
                 return false;
             }
-        }
-
-        #region Speech Inspiration
-        private static bool PositiveOutcome(ThoughtDef outcome)
-        {
-            return outcome == ThoughtDefOf.EncouragingSpeech || outcome == ThoughtDefOf.InspirationalSpeech;
-        }
-
-        // Token: 0x0600319B RID: 12699 RVA: 0x00113CE0 File Offset: 0x00111EE0
-        [HarmonyPatch(typeof(LordJob_Joinable_Speech))]
-        [HarmonyPatch("ApplyOutcome")]
-        static class LordJob_JoinableSpeech_ApplyOutcome_Patch
-        {
-            static bool Prefix(LordJob_Joinable_Speech __instance, Pawn ___organizer, float progress)
-            {
-                if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().speechesInspire)
-                {
-                    return true;
-                }
-
-                if (progress < 0.5f)
-                {
-                    return true;
-                }
-                ThoughtDef key = LordJob_Joinable_Speech.OutcomeThoughtChances.RandomElementByWeight(delegate (KeyValuePair<ThoughtDef, float> t)
-                {
-                    if (!PositiveOutcome(t.Key))
-                    {
-                        return LordJob_Joinable_Speech.OutcomeThoughtChances[t.Key];
-                    }
-                    return LordJob_Joinable_Speech.OutcomeThoughtChances[t.Key] * ___organizer.GetStatValue(StatDefOf.SocialImpact, true) * progress;
-                }).Key;
-                foreach (Pawn pawn in __instance.lord.ownedPawns)
-                {
-                    if (pawn != ___organizer && ___organizer.Position.InHorDistOf(pawn.Position, 18f))
-                    {
-                        pawn.needs.mood.thoughts.memories.TryGainMemory(key, ___organizer);
-                        if (key == ThoughtDefOf.InspirationalSpeech && Rand.Value <= LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().speechesInspireChance)
-                        {
-                            InspirationDef randomAvailableInspirationDef = (from x in DefDatabase<InspirationDef>.AllDefsListForReading
-                                                                            where x.Worker.InspirationCanOccur(pawn)
-                                                                            select x).RandomElementByWeightWithFallback((InspirationDef x) => x.Worker.CommonalityFor(pawn), null);
-                            if (randomAvailableInspirationDef != null)
-                            {
-                                pawn.mindState.inspirationHandler.TryStartInspiration_NewTemp(randomAvailableInspirationDef);
-                            }
-                        }
-
-                    }
-                }
-                TaggedString taggedString = "LetterFinishedSpeech".Translate(___organizer.Named("ORGANIZER")).CapitalizeFirst() + " " + ("Letter" + key.defName).Translate();
-                if (progress < 1f)
-                {
-                    taggedString += "\n\n" + "LetterSpeechInterrupted".Translate(progress.ToStringPercent(), ___organizer.Named("ORGANIZER"));
-                }
-                Find.LetterStack.ReceiveLetter(key.stages[0].LabelCap, taggedString, PositiveOutcome(key) ? LetterDefOf.PositiveEvent : LetterDefOf.NegativeEvent, ___organizer, null, null, null, null);
-                Ability ability = ___organizer.abilities.GetAbility(AbilityDefOf.Speech);
-                RoyalTitle mostSeniorTitle = ___organizer.royalty.MostSeniorTitle;
-                if (ability != null && mostSeniorTitle != null)
-                {
-                    ability.StartCooldown(mostSeniorTitle.def.speechCooldown.RandomInRange);
-                }
-                return false;
-            }
-        }
-
-        #endregion
-
-
+        }    
 
         #region Conceited Disabled Work
         [HarmonyPatch(typeof(Pawn))]
@@ -306,8 +238,6 @@ namespace TestMod
         public bool spouseWantsThroneroom;
         public bool willWorkPassionSkills;
         public bool willWorkOnlyMajorPassionSkills;
-        public bool speechesInspire;
-        public float speechesInspireChance;
         public float authorityFallPerDayMultiplier;
         //public float exampleFloat = 200f;
         //public List<Pawn> exampleListOfPawns = new List<Pawn>();
@@ -321,9 +251,6 @@ namespace TestMod
             Scribe_Values.Look(ref spouseWantsThroneroom, "spouseWantsThroneroom", true, true);
             Scribe_Values.Look(ref willWorkPassionSkills, "willWorkPassionSkills", true, true);
             Scribe_Values.Look(ref willWorkOnlyMajorPassionSkills, "willWorkOnlyMajorPassionSkills", false, true);
-
-            Scribe_Values.Look(ref speechesInspire, "speechesInspire", true, true);
-            Scribe_Values.Look(ref speechesInspireChance, "inspiredChance", 0.5f, true);
             //Scribe_Collections.Look(ref exampleListOfPawns, "exampleListOfPawns", LookMode.Reference);
             base.ExposeData();
         }
@@ -373,16 +300,7 @@ namespace TestMod
                     settings.willWorkOnlyMajorPassionSkills = true;
 
                 }
-            }
-            listingStandard.Label("");
-            listingStandard.Label("-=[ " + "SpeechSettings".Translate() + " ]=-");
-            listingStandard.CheckboxLabeled("SpeechSettingsCheckboxLabel".Translate(), ref settings.speechesInspire, "SpeechSettingsCheckboxTooltip".Translate());
-            if (settings.speechesInspire)
-            {
-                listingStandard.Label("SpeechInspireChanceLabel".Translate() + ": " + String.Format("{0:P2}", settings.speechesInspireChance), -1f, "SpeechInspireChanceTooltip".Translate());
-                //settings.speechesInspireChance = Widgets.HorizontalSlider(new Rect(10, 10, 100, 10), settings.speechesInspireChance, 0.1f, 1f);                            
-                settings.speechesInspireChance = listingStandard.Slider(settings.speechesInspireChance, 0.1f, 1f);
-            }         
+            }                
 
             listingStandard.End();
             base.DoSettingsWindowContents(inRect);
