@@ -1,23 +1,21 @@
-# RoyaltyTweaks
-
 Limits throne room requirement to highest ranking royal. Also re-enables passionate skills.
 
-Royalty Tweaks 1.11
+Royalty Tweaks 1.16
 
 What noble in their right mind would let their knights each have their own throne room? Not mine, that's for sure!
 
 This mod removes the demand by nobles other than the highest ranking in your colony to have a throne room. You can still give them one if you like but it's entirely optional.
 
-Royals are also a little less lazy now that they remember how much they used to like to do the... things they liked to do... before the mysterious brain implants. They will continue to work their passionate skills even after ranking up.
+Conceited royals (greedy and/or jealous) are also a little less lazy now that they remember how much they used to like to do the... things they liked to do... before the mysterious brain implants. They will continue to work their passionate skills even after ranking up.
 
 FEATURES
 THRONE ROOM
 The only royal who will have need of a throne room and the Authority need that goes with it is the royal with the highest title who lives on the same map.
 If they are married to another royal, their spouse can also have need of a throne room and authority need if their title demands it. This option can be changed in the option menu.
-If there is a tie for loftiest title regardless of relationship, both will demand throne rooms and have the Authority need.
+If there is a tie for loftiest title regardless of relationship, both will demand throne rooms until you give one to one of them.
 
 SKILLS
-Royals will now continue to work their previously title-disabled passionate skills. This feature can be turned off in the options menu if desired.
+Conceited royals will now continue to work their previously title-disabled passionate skills. This feature can be turned off in the options menu if desired.
 
 CONFLICTS
 None! (Hopefully)
@@ -26,8 +24,19 @@ FAQ
 Q. Can this be installed in a pre-existing game/save?
 A. Yep! No problem. It can also be removed at any time without barfing.
 
+CONTRIBUTORS
+HawnHan - Chinese Translation
 
 CHANGELOG
+1.16 - Removed Inspiration from Inspiring Speech stuff because it's been added to the core Royalty experience. Updated the mod to not throw warnings about game version 1.2.
+
+1.15 - The second highest royal will no longer demand a throneroom when the highest one gets sent on a caravan or goes out trading or something. It should now work as expected. Thanks to Delmar for reporting that bug.
+
+1.14 - Progress marches on. I removed the authority stuff since it's been removed from the game itself. I did some code cleanup on some renamed methods as well.
+
+1.13 - Authority need decay rate is now adjustable. You can make your royals spend less time in the throne room if you like.
+
+1.12 - Inspirational speeches can trigger skill inspiration in listeners.
 
 1.11 - Removed shared throne room stuff because it's now in the vanilla game.
 
@@ -46,8 +55,6 @@ CHANGELOG
 * Attempted to limit the mod logic to prevent strange behavior in other circumstances.
 
 1.07a - Throne Room adjustments are now optional and controlled in the options menu. Made minor changes to try and make the mod settings turned on by default.
-
-1.07 - Throne Room adjustments are now optional and controlled in the options menu.
 
 1.06 - Resolved Work Tab incompatibility
 
