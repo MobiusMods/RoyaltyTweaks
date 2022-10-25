@@ -9,311 +9,371 @@ using System.Runtime.Remoting.Messaging;
 
 namespace TestMod
 {
-    [StaticConstructorOnStartup]
-    public static class RoyaltyTweaks
-    {
-        static RoyaltyTweaks() //our constructor
-        {
-            //Harmony.DEBUG = true;
-            var harmony = new Harmony("com.mobius.royaltytweaks");
 
-            harmony.PatchAll();
-        }
+	// Token: 0x02000002 RID: 2
+	[StaticConstructorOnStartup]
+	public static class RoyaltyTweaks
+	{
+		// Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250
+		static RoyaltyTweaks()
+		{
+			new Harmony("com.mobius.royaltytweaks").PatchAll();
+		}
 
-        [HarmonyPatch(typeof(Pawn_RoyaltyTracker))]
-        [HarmonyPatch(nameof(Pawn_RoyaltyTracker.CanRequireThroneroom))]
-        static class Pawn_RoyaltyTracker_CanRequireThroneroom_Patch
-        {
-            static bool Prefix(Pawn_RoyaltyTracker __instance, Pawn ___pawn, ref bool __result)
-            {
-                if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().throneRoomTweaks || ___pawn.ownership.AssignedThrone != null)
-                {
-                    return true;
-                }
+		// Token: 0x02000005 RID: 5
+		[HarmonyPatch(typeof(Pawn_RoyaltyTracker))]
+		[HarmonyPatch("CanRequireThroneroom")]
+		private static class Pawn_RoyaltyTracker_CanRequireThroneroom_Patch
+		{
+			// Token: 0x06000007 RID: 7 RVA: 0x000022C0 File Offset: 0x000004C0
+			private static bool Prefix(Pawn_RoyaltyTracker __instance, Pawn ___pawn, ref bool __result)
+			{
+				if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().throneRoomTweaks || ___pawn.ownership.AssignedThrone != null)
+				{
+					return true;
+				}
+				bool flag;
+				if (___pawn.IsFreeColonist && __instance.allowRoomRequirements && !QuestUtility.IsQuestLodger(___pawn))
+				{
+					Map mapHeld = ___pawn.MapHeld;
+					flag = (mapHeld != null && mapHeld.IsPlayerHome);
+				}
+				else
+				{
+					flag = false;
+				}
+				__result = flag;
+				int highestSeniority = 0;
+				bool throneAssigned = false;
+				if (__result && __instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
+				{
+					foreach (Pawn pawn in PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_FreeColonists)
+					{
+						if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null && pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
+						{
+							highestSeniority = pawn.royalty.MostSeniorTitle.def.seniority;
+							if (pawn.ownership.AssignedThrone != null)
+							{
+								throneAssigned = true;
+							}
+						}
+					}
+					if (__instance.MostSeniorTitle.def.seniority < highestSeniority)
+					{
+						List<Pawn> spouses = null;
+						if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().spouseWantsThroneroom)
+						{
+							spouses = SpouseRelationUtility.GetSpouses(___pawn, false);
+						}
+						if (spouses != null)
+						{
+							if (!spouses.All((Pawn a) => a.royalty == null))
+							{
+								if (!spouses.All((Pawn a) => a.royalty.MostSeniorTitle == null) && !spouses.All((Pawn a) => a.royalty.MostSeniorTitle.def.seniority < highestSeniority))
+								{
+									goto IL_1CD;
+								}
+							}
+						}
+						__result = false;
+					}
+					IL_1CD:
+					if (__instance.MostSeniorTitle.def.seniority == highestSeniority && throneAssigned)
+					{
+						__result = false;
+					}
+				}
+				return false;
+			}
+		}
 
-                __result = ___pawn.IsFreeColonist && __instance.allowRoomRequirements && !___pawn.IsQuestLodger() && (___pawn.MapHeld?.IsPlayerHome ?? false);
+		// Token: 0x02000006 RID: 6
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("CombinedDisabledWorkTags", MethodType.Getter)]
+		private static class Pawn_CombinedDisabledWorkTags_Patch
+		{
+			// Token: 0x06000008 RID: 8 RVA: 0x000024CC File Offset: 0x000006CC
+			private static string nameof(Action<float> applyOutcome)
+			{
+				throw new NotImplementedException();
+			}
 
-                int highestSeniority = 0;
-                bool throneAssigned = false;
-                if (__result)
-                {
-                    if (__instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
-                    {
-                        foreach (Pawn pawn in PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_FreeColonists)
-                        {
-                            if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null)
-                            {
-                                if (pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
-                                {
-                                    highestSeniority = pawn.royalty.MostSeniorTitle.def.seniority;
-                                    if (pawn.ownership.AssignedThrone != null) throneAssigned = true;
-                                }
-                            }
-                        }
+			// Token: 0x06000009 RID: 9 RVA: 0x000024D4 File Offset: 0x000006D4
+			private static bool Prefix(Pawn __instance, ref WorkTags __result)
+			{
+				if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
+				{
+					WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryAndTraits : 0;
+					WorkTags disabledRoyalTags = 0;
+					Pawn_RoyaltyTracker royalty = __instance.royalty;
+					bool flag;
+					if (royalty == null)
+					{
+						flag = false;
+					}
+					else
+					{
+						RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
+						int? num;
+						if (mostSeniorTitle == null)
+						{
+							num = null;
+						}
+						else
+						{
+							RoyalTitleDef def = mostSeniorTitle.def;
+							num = ((def != null) ? new int?(def.seniority) : null);
+						}
+						int? num2 = num;
+						int num3 = 100;
+						flag = (num2.GetValueOrDefault() > num3 & num2 != null);
+					}
+					if (flag)
+					{
+						foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
+						{
+							if (royalTitle.conceited)
+							{
+								disabledRoyalTags |= royalTitle.def.disabledWorkTags;
+							}
+						}
+						List<string> namelist = new List<string>();
+						if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+						{
+							namelist = (from a in __instance.skills.skills
+										where a.passion == Passion.Major
+										select a into b
+										select b.def.defName).ToList<string>();
+						}
+						else
+						{
+							namelist = (from a in __instance.skills.skills
+										where a.passion > Passion.None
+										select a into b
+										select b.def.defName).ToList<string>();
+						}
+						List<WorkTypeDef> list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
+						if (namelist != null && GenCollection.Any<string>(namelist))
+						{
+							IEnumerable<WorkTags> worklist = from a in list
+															 where a.relevantSkills != null && GenCollection.Any<SkillDef>(a.relevantSkills) && namelist.Contains(a.relevantSkills.First<SkillDef>().defName)
+															 select a into b
+															 select b.workTags;
+							if (worklist != null && worklist.Any<WorkTags>())
+							{
+								foreach (WorkTags worklistItem in worklist)
+								{
+									disabledRoyalTags &= ~worklistItem;
+								}
+							}
+						}
+					}
+					workTags |= disabledRoyalTags;
+					if (__instance.health != null && __instance.health.hediffSet != null)
+					{
+						foreach (Hediff hediff in __instance.health.hediffSet.hediffs)
+						{
+							HediffStage curStage = hediff.CurStage;
+							if (curStage != null)
+							{
+								workTags |= curStage.disabledWorkTags;
+							}
+						}
+					}
+					__result = workTags;
+					return false;
+				}
+				return true;
+			}
+		}
 
-                        if (__instance.MostSeniorTitle.def.seniority < highestSeniority)
-                        {
-                            Pawn spouse = null;
-                            if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().spouseWantsThroneroom)
-                            {
-                                spouse = ___pawn.GetSpouse();
-                            }
-                            if (spouse == null || spouse.royalty == null || spouse.royalty.MostSeniorTitle == null || spouse.royalty.MostSeniorTitle.def.seniority < highestSeniority)
-                            {
-                                __result = false;
-                            }
-                        }
-                        if (__instance.MostSeniorTitle.def.seniority == highestSeniority && throneAssigned)
-                        {
-                            __result = false;
-                        }
+		// Token: 0x02000007 RID: 7
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("GetDisabledWorkTypes")]
+		private static class GetDisabledWorkTypes_Patch
+		{
+			// Token: 0x0600000A RID: 10 RVA: 0x000027CC File Offset: 0x000009CC
+			private static void Postfix(Pawn __instance, ref List<WorkTypeDef> __result, bool permanentOnly = false)
+			{
+				if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills && __instance.IsColonist)
+				{
+					Pawn_RoyaltyTracker royalty = __instance.royalty;
+					bool flag;
+					if (royalty == null)
+					{
+						flag = false;
+					}
+					else
+					{
+						RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
+						int? num;
+						if (mostSeniorTitle == null)
+						{
+							num = null;
+						}
+						else
+						{
+							RoyalTitleDef def = mostSeniorTitle.def;
+							num = ((def != null) ? new int?(def.seniority) : null);
+						}
+						int? num2 = num;
+						int num3 = 100;
+						flag = (num2.GetValueOrDefault() > num3 & num2 != null);
+					}
+					if (flag && __instance.royalty.MostSeniorTitle.conceited)
+					{
+						List<WorkTypeDef> removeList = new List<WorkTypeDef>();
+						foreach (WorkTypeDef workType in __result)
+						{
+							List<SkillDef> skills = workType.relevantSkills;
+							if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+							{
+								if (!GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion == Passion.Major && skills.Contains(a.def)))
+								{
+									removeList.Add(workType);
+								}
+							}
+							else if (!GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion != Passion.None && skills.Contains(a.def)))
+							{
+								removeList.Add(workType);
+							}
+						}
+						if (!GenList.NullOrEmpty<WorkTypeDef>(removeList))
+						{
+							__result = removeList;
+						}
+					}
+				}
+			}
+		}
 
-                    }
-                }
-                return false;
-            }
-        }    
+		// Token: 0x02000008 RID: 8
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("WorkTypeIsDisabled")]
+		private static class WorkTypeIsDisabled_Patch
+		{
+			// Token: 0x0600000B RID: 11 RVA: 0x00002930 File Offset: 0x00000B30
+			private static void Postfix(Pawn __instance, WorkTypeDef w, ref bool __result)
+			{
+				if (__result && LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills && __instance.IsColonist)
+				{
+					Pawn_RoyaltyTracker royalty = __instance.royalty;
+					bool flag;
+					if (royalty == null)
+					{
+						flag = false;
+					}
+					else
+					{
+						RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
+						int? num;
+						if (mostSeniorTitle == null)
+						{
+							num = null;
+						}
+						else
+						{
+							RoyalTitleDef def = mostSeniorTitle.def;
+							num = ((def != null) ? new int?(def.seniority) : null);
+						}
+						int? num2 = num;
+						int num3 = 100;
+						flag = (num2.GetValueOrDefault() > num3 & num2 != null);
+					}
+					if (flag && __instance.royalty.MostSeniorTitle.conceited)
+					{
+						List<SkillDef> skills = w.relevantSkills;
+						if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+						{
+							if (GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion == Passion.Major && skills.Contains(a.def)))
+							{
+								__result = false;
+								return;
+							}
+						}
+						else if (GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion != Passion.None && skills.Contains(a.def)))
+						{
+							__result = false;
+						}
+					}
+				}
+			}
+		}
+	}
 
-        #region Conceited Disabled Work
-        [HarmonyPatch(typeof(Pawn))]
-        [HarmonyPatch("CombinedDisabledWorkTags", MethodType.Getter)]
-        static class Pawn_CombinedDisabledWorkTags_Patch
-        {
-            private static string nameof(Action<float> applyOutcome)
-            {
-                throw new NotImplementedException();
-            }
+	// Token: 0x02000003 RID: 3
+	public class RoyaltyTweaksSettings : ModSettings
+	{
+		// Token: 0x06000002 RID: 2 RVA: 0x00002064 File Offset: 0x00000264
+		public override void ExposeData()
+		{
+			Scribe_Values.Look<bool>(ref this.throneRoomTweaks, "throneRoomTweaks", true, true);
+			Scribe_Values.Look<bool>(ref this.spouseWantsThroneroom, "spouseWantsThroneroom", true, true);
+			Scribe_Values.Look<bool>(ref this.willWorkPassionSkills, "willWorkPassionSkills", true, true);
+			Scribe_Values.Look<bool>(ref this.willWorkOnlyMajorPassionSkills, "willWorkOnlyMajorPassionSkills", false, true);
+			base.ExposeData();
+		}
 
-            static bool Prefix(Pawn __instance, ref WorkTags __result)
-            {
-                if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
-                {
-                    WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryAndTraits : WorkTags.None;
-                    WorkTags disabledRoyalTags = WorkTags.None;
+		// Token: 0x04000001 RID: 1
+		public bool throneRoomTweaks;
 
-                    if (__instance.royalty?.MostSeniorTitle?.def?.seniority > 100)
-                    {
-                        foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
-                        {
-                            if (royalTitle.conceited)
-                            {
-                                disabledRoyalTags |= royalTitle.def.disabledWorkTags;
-                            }
-                        }
+		// Token: 0x04000002 RID: 2
+		public bool spouseWantsThroneroom;
 
+		// Token: 0x04000003 RID: 3
+		public bool willWorkPassionSkills;
 
+		// Token: 0x04000004 RID: 4
+		public bool willWorkOnlyMajorPassionSkills;
 
-                        var namelist = new List<string>();
-                        if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
-                        {
-                            namelist = __instance.skills.skills.Where(a => a.passion == Passion.Major).Select(b => b.def.defName).ToList();
-                        }
-                        else
-                        {
-                            namelist = __instance.skills.skills.Where(a => a.passion != Passion.None).Select(b => b.def.defName).ToList();
-                        }
+		// Token: 0x04000005 RID: 5
+		public float authorityFallPerDayMultiplier;
+	}
+	// Token: 0x02000004 RID: 4
+	public class RoyaltyTweaksMod : Mod
+	{
+		// Token: 0x06000004 RID: 4 RVA: 0x000020C7 File Offset: 0x000002C7
+		public RoyaltyTweaksMod(ModContentPack content) : base(content)
+		{
+			this.settings = base.GetSettings<RoyaltyTweaksSettings>();
+		}
 
-                        var list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
-                        if (namelist != null && namelist.Any())
-                        {
-                            var worklist = list.Where(a => a.relevantSkills != null && a.relevantSkills.Any() && namelist.Contains(a.relevantSkills.First().defName)).Select(b => b.workTags);
+		// Token: 0x06000005 RID: 5 RVA: 0x000020DC File Offset: 0x000002DC
+		public override void DoSettingsWindowContents(Rect inRect)
+		{
+			Listing_Standard listingStandard = new Listing_Standard();
+			listingStandard.Begin(inRect);
+			listingStandard.Label("-=[ " + Translator.Translate("ThroneRoomSettings") + " ]=-", -1f, null);
+			listingStandard.CheckboxLabeled(Translator.Translate("ThroneRoomRequiredByHighestCheckboxLabel"), ref this.settings.throneRoomTweaks, Translator.Translate("ThroneRoomRequiredByHighestCheckboxTooltip"));
+			if (this.settings.throneRoomTweaks)
+			{
+				listingStandard.CheckboxLabeled(Translator.Translate("SpouseOptionLabel"), ref this.settings.spouseWantsThroneroom, Translator.Translate("SpouseOptionTooltip"));
+			}
+			listingStandard.Label("", -1f, null);
+			listingStandard.Label("-=[ " + Translator.Translate("RoyalPassionSkillSettings") + " ]=-", -1f, null);
+			listingStandard.CheckboxLabeled(Translator.Translate("PassionSkillsCheckboxLabel"), ref this.settings.willWorkPassionSkills, Translator.Translate("PassionSkillsCheckboxTooltip"));
+			if (this.settings.willWorkPassionSkills)
+			{
+				if (listingStandard.RadioButton(Translator.Translate("MajorAndMinorLabel"), !this.settings.willWorkOnlyMajorPassionSkills, 0f, Translator.Translate("MajorAndMinorTooltip"), null))
+				{
+					this.settings.willWorkOnlyMajorPassionSkills = false;
+				}
+				if (listingStandard.RadioButton(Translator.Translate("OnlyMajorLabel"), this.settings.willWorkOnlyMajorPassionSkills, 0f, Translator.Translate("OnlyMajorTooltip"), null))
+				{
+					this.settings.willWorkOnlyMajorPassionSkills = true;
+				}
+			}
+			listingStandard.End();
+			base.DoSettingsWindowContents(inRect);
+		}
 
-                            if (worklist != null && worklist.Any())
-                            {
-                                foreach (var worklistItem in worklist)
-                                {
-                                    disabledRoyalTags &= ~worklistItem;
-                                }
+		// Token: 0x06000006 RID: 6 RVA: 0x000022AE File Offset: 0x000004AE
+		public override string SettingsCategory()
+		{
+			return Translator.Translate("RoyalTweaks");
+		}
 
-                            }
-                        }
-
-
-                    }
-                    workTags |= disabledRoyalTags;
-
-                    if (__instance.health != null && __instance.health.hediffSet != null)
-                    {
-                        foreach (Hediff hediff in __instance.health.hediffSet.hediffs)
-                        {
-                            HediffStage curStage = hediff.CurStage;
-                            if (curStage != null)
-                            {
-                                workTags |= curStage.disabledWorkTags;
-                            }
-                        }
-                    }
-                    __result = workTags;
-
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        [HarmonyPatch(typeof(Pawn))]
-        [HarmonyPatch(nameof(Pawn.GetDisabledWorkTypes))]
-        static class GetDisabledWorkTypes_Patch
-        {
-            static void Postfix(Pawn __instance, ref List<WorkTypeDef> __result, bool permanentOnly = false)
-            {
-                if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills
-                    && __instance.IsColonist
-                    && __instance.royalty?.MostSeniorTitle?.def?.seniority > 100
-                    && __instance.royalty.MostSeniorTitle.conceited)
-                {
-                    var removeList = new List<WorkTypeDef>();
-                    foreach (var workType in __result)
-                    {
-                        var skills = workType.relevantSkills;
-
-                        if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
-                        {
-                            // Will only work Major
-                            if (!__instance.skills.skills.Any(a => a.passion == Passion.Major && skills.Contains(a.def)))
-                            {
-                                removeList.Add(workType);
-                            }
-                        }
-                        else
-                        {
-                            // Will work all passion skills
-                            if (!__instance.skills.skills.Any(a => a.passion != Passion.None && skills.Contains(a.def)))
-                            {
-                                removeList.Add(workType);
-                            }
-                        }
-                    }
-                    if (!removeList.NullOrEmpty())
-                    {
-                        __result = removeList;
-                    }
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(Pawn))]
-        [HarmonyPatch(nameof(Pawn.WorkTypeIsDisabled))]
-        static class WorkTypeIsDisabled_Patch
-        {
-            static void Postfix(Pawn __instance, WorkTypeDef w, ref bool __result)
-            {
-                // __result = true means the work is disabled and to check further now.
-                if (__result && LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills
-                    && __instance.IsColonist
-                     && __instance.royalty?.MostSeniorTitle?.def?.seniority > 100
-                     && __instance.royalty.MostSeniorTitle.conceited)
-                {
-                    var skills = w.relevantSkills;
-
-                    if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
-                    {
-                        // Work only major passion skills
-                        if (__instance.skills.skills.Any(a => a.passion == Passion.Major && skills.Contains(a.def)))
-                        {
-                            __result = false;
-                        }
-                    }
-                    else
-                    {
-                        // Work all passion skills.
-                        if (__instance.skills.skills.Any(a => a.passion != Passion.None && skills.Contains(a.def)))
-                        {
-                            __result = false;
-                        }
-                    }
-                }
-            }
-        }
-        #endregion
-    }
-
-    public class RoyaltyTweaksSettings : ModSettings
-    {
-        /// <summary>
-        /// The three settings our mod has.
-        /// </summary>
-        ///
-        public bool throneRoomTweaks;
-        public bool spouseWantsThroneroom;
-        public bool willWorkPassionSkills;
-        public bool willWorkOnlyMajorPassionSkills;
-        public float authorityFallPerDayMultiplier;
-        //public float exampleFloat = 200f;
-        //public List<Pawn> exampleListOfPawns = new List<Pawn>();
-
-        /// <summary>
-        /// The part that writes our settings to file. Note that saving is by ref.
-        /// </summary>
-        public override void ExposeData()
-        {
-            Scribe_Values.Look(ref throneRoomTweaks, "throneRoomTweaks", true, true);
-            Scribe_Values.Look(ref spouseWantsThroneroom, "spouseWantsThroneroom", true, true);
-            Scribe_Values.Look(ref willWorkPassionSkills, "willWorkPassionSkills", true, true);
-            Scribe_Values.Look(ref willWorkOnlyMajorPassionSkills, "willWorkOnlyMajorPassionSkills", false, true);
-            //Scribe_Collections.Look(ref exampleListOfPawns, "exampleListOfPawns", LookMode.Reference);
-            base.ExposeData();
-        }
-    }
-    public class RoyaltyTweaksMod : Mod
-    {
-        /// <summary>
-        /// A reference to our settings.
-        /// </summary>
-        RoyaltyTweaksSettings settings;
-
-        /// <summary>
-        /// A mandatory constructor which resolves the reference to our settings.
-        /// </summary>
-        /// <param name="content"></param>
-        public RoyaltyTweaksMod(ModContentPack content) : base(content)
-        {
-            this.settings = GetSettings<RoyaltyTweaksSettings>();
-        }
-
-        /// <summary>
-        /// The (optional) GUI part to set your settings.
-        /// </summary>
-        /// <param name="inRect">A Unity Rect with the size of the settings window.</param>
-        public override void DoSettingsWindowContents(Rect inRect)
-        {
-            Listing_Standard listingStandard = new Listing_Standard();
-            listingStandard.Begin(inRect);
-            listingStandard.Label("-=[ " + "ThroneRoomSettings".Translate() + " ]=-");
-            listingStandard.CheckboxLabeled("ThroneRoomRequiredByHighestCheckboxLabel".Translate(), ref settings.throneRoomTweaks, "ThroneRoomRequiredByHighestCheckboxTooltip".Translate());
-            if (settings.throneRoomTweaks)
-            {
-                listingStandard.CheckboxLabeled("SpouseOptionLabel".Translate(), ref settings.spouseWantsThroneroom, "SpouseOptionTooltip".Translate());
-            }
-            listingStandard.Label("");
-            listingStandard.Label("-=[ " + "RoyalPassionSkillSettings".Translate() + " ]=-");
-            listingStandard.CheckboxLabeled("PassionSkillsCheckboxLabel".Translate(), ref settings.willWorkPassionSkills, "PassionSkillsCheckboxTooltip".Translate());
-            if (settings.willWorkPassionSkills)
-            {
-                if (listingStandard.RadioButton_NewTemp("MajorAndMinorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == false, 0f, "MajorAndMinorTooltip".Translate()))
-                {
-                    settings.willWorkOnlyMajorPassionSkills = false;
-
-                }
-                if (listingStandard.RadioButton_NewTemp("OnlyMajorLabel".Translate(), settings.willWorkOnlyMajorPassionSkills == true, 0f, "OnlyMajorTooltip".Translate()))
-                {
-                    settings.willWorkOnlyMajorPassionSkills = true;
-
-                }
-            }                
-
-            listingStandard.End();
-            base.DoSettingsWindowContents(inRect);
-        }
-
-        /// <summary>
-        /// Override SettingsCategory to show up in the list of settings.
-        /// Using .Translate() is optional, but does allow for localisation.
-        /// </summary>
-        /// <returns>The (translated) mod name.</returns>
-        public override string SettingsCategory()
-        {
-            return "RoyalTweaks".Translate();
-        }
-    }
+		// Token: 0x04000006 RID: 6
+		private RoyaltyTweaksSettings settings;
+	}
 }
