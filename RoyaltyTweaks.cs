@@ -103,7 +103,7 @@ namespace TestMod
 			{
 				if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
 				{
-					WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryAndTraits : 0;
+					WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryTraitsAndGenes : 0;
 					WorkTags disabledRoyalTags = 0;
 					Pawn_RoyaltyTracker royalty = __instance.royalty;
 					bool flag;
@@ -169,18 +169,38 @@ namespace TestMod
 						}
 					}
 					workTags |= disabledRoyalTags;
-					if (__instance.health != null && __instance.health.hediffSet != null)
-					{
-						foreach (Hediff hediff in __instance.health.hediffSet.hediffs)
-						{
-							HediffStage curStage = hediff.CurStage;
-							if (curStage != null)
-							{
-								workTags |= curStage.disabledWorkTags;
-							}
-						}
-					}
-					__result = workTags;
+                    if (ModsConfig.IdeologyActive && __instance.Ideo != null)
+                    {
+                        Precept_Role role = __instance.Ideo.GetRole(__instance);
+                        if (role != null)
+                        {
+                            workTags |= role.def.roleDisabledWorkTags;
+                        }
+                    }
+                    if (__instance.health?.hediffSet != null)
+                    {
+                        foreach (Hediff hediff in __instance.health.hediffSet.hediffs)
+                        {
+                            HediffStage curStage = hediff.CurStage;
+                            if (curStage != null)
+                            {
+                                workTags |= curStage.disabledWorkTags;
+                            }
+                        }
+                    }
+                    foreach (QuestPart_WorkDisabled item2 in QuestUtility.GetWorkDisabledQuestPart(__instance))
+                    {
+                        workTags |= item2.disabledWorkTags;
+                    }
+                    if (__instance.IsMutant)
+                    {
+                        workTags = __instance.mutant.Def.disabledWorkTags;
+                        if (!__instance.mutant.IsPassive)
+                        {
+                            workTags &= ~WorkTags.Violent;
+                        }
+                    }
+                    __result = workTags;
 					return false;
 				}
 				return true;
