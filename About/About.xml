@@ -19,10 +19,13 @@
   <supportedVersions>
     <li>1.1</li>
     <li>1.2</li>
+    <li>1.3</li>
+    <li>1.4</li>
+    <li>1.5</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.19 ]=-
+  <description>-=[ Royalty Tweaks 1.21 ]=-
   
-* Removed Speech Inspiration after its addition to core Royalty DLC
+* Fixed compatibility with traits disabled through genes
  
   </description>
 </ModMetaData>
