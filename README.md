@@ -1,7 +1,6 @@
 Limits throne room requirement to highest ranking royal. Also re-enables passionate skills.
 
-Royalty Tweaks 1.16
-
+Royalty Tweaks 1.21
 What noble in their right mind would let their knights each have their own throne room? Not mine, that's for sure!
 
 This mod removes the demand by nobles other than the highest ranking in your colony to have a throne room. You can still give them one if you like but it's entirely optional.
@@ -24,10 +23,24 @@ FAQ
 Q. Can this be installed in a pre-existing game/save?
 A. Yep! No problem. It can also be removed at any time without barfing.
 
+NON-STEAM DOWNLOAD
+1.2 Direct Download[github.com]
+
 CONTRIBUTORS
 HawnHan - Chinese Translation
 
 CHANGELOG
+1.21 - Fixed compatibility with traits disabled through genes (Thanks, TheCakeMachine!)
+
+1.2 - Fixed DLL to work with Rimworld 1.5
+
+1.19 - Fixed DLL issues. (Sorry, folks!)
+
+1.18 - Upgraded to 1.4 game version support.
+
+1.17 - Upgraded to 1.3 game version support.
+Support for multiple spouses (I hope).
+
 1.16 - Removed Inspiration from Inspiring Speech stuff because it's been added to the core Royalty experience. Updated the mod to not throw warnings about game version 1.2.
 
 1.15 - The second highest royal will no longer demand a throneroom when the highest one gets sent on a caravan or goes out trading or something. It should now work as expected. Thanks to Delmar for reporting that bug.
