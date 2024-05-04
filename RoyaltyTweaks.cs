@@ -103,72 +103,78 @@ namespace TestMod
 			{
 				if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
 				{
-					WorkTags workTags = (__instance.story != null) ? __instance.story.DisabledWorkTagsBackstoryTraitsAndGenes : 0;
-					WorkTags disabledRoyalTags = 0;
-					Pawn_RoyaltyTracker royalty = __instance.royalty;
-					bool flag;
-					if (royalty == null)
-					{
-						flag = false;
-					}
-					else
-					{
-						RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
-						int? num;
-						if (mostSeniorTitle == null)
-						{
-							num = null;
-						}
-						else
-						{
-							RoyalTitleDef def = mostSeniorTitle.def;
-							num = ((def != null) ? new int?(def.seniority) : null);
-						}
-						int? num2 = num;
-						int num3 = 100;
-						flag = (num2.GetValueOrDefault() > num3 & num2 != null);
-					}
-					if (flag)
-					{
-						foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
-						{
-							if (royalTitle.conceited)
-							{
-								disabledRoyalTags |= royalTitle.def.disabledWorkTags;
-							}
-						}
-						List<string> namelist = new List<string>();
-						if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
-						{
-							namelist = (from a in __instance.skills.skills
-										where a.passion == Passion.Major
-										select a into b
-										select b.def.defName).ToList<string>();
-						}
-						else
-						{
-							namelist = (from a in __instance.skills.skills
-										where a.passion > Passion.None
-										select a into b
-										select b.def.defName).ToList<string>();
-						}
-						List<WorkTypeDef> list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
-						if (namelist != null && GenCollection.Any<string>(namelist))
-						{
-							IEnumerable<WorkTags> worklist = from a in list
-															 where a.relevantSkills != null && GenCollection.Any<SkillDef>(a.relevantSkills) && namelist.Contains(a.relevantSkills.First<SkillDef>().defName)
-															 select a into b
-															 select b.workTags;
-							if (worklist != null && worklist.Any<WorkTags>())
-							{
-								foreach (WorkTags worklistItem in worklist)
-								{
-									disabledRoyalTags &= ~worklistItem;
-								}
-							}
-						}
-					}
-					workTags |= disabledRoyalTags;
+                    WorkTags workTags = __instance.story?.DisabledWorkTagsBackstoryTraitsAndGenes ?? WorkTags.None;
+                    workTags |= __instance.kindDef.disabledWorkTags;
+
+                    #region Royalty Tweaks
+                    WorkTags disabledRoyalTags = 0;
+                    Pawn_RoyaltyTracker royalty = __instance.royalty;
+                    bool flag;
+
+                    if (royalty == null)
+                    {
+                        flag = false;
+                    }
+                    else
+                    {
+                        RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
+                        int? num;
+                        if (mostSeniorTitle == null)
+                        {
+                            num = null;
+                        }
+                        else
+                        {
+                            RoyalTitleDef def = mostSeniorTitle.def;
+                            num = ((def != null) ? new int?(def.seniority) : null);
+                        }
+                        int? num2 = num;
+                        int num3 = 100;
+                        flag = (num2.GetValueOrDefault() > num3 & num2 != null);
+                    }
+                    if (flag)
+                    {
+                        foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
+                        {
+                            if (royalTitle.conceited)
+                            {
+                                disabledRoyalTags |= royalTitle.def.disabledWorkTags;
+                            }
+                        }
+                        List<string> namelist = new List<string>();
+                        if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+                        {
+                            namelist = (from a in __instance.skills.skills
+                                        where a.passion == Passion.Major
+                                        select a into b
+                                        select b.def.defName).ToList<string>();
+                        }
+                        else
+                        {
+                            namelist = (from a in __instance.skills.skills
+                                        where a.passion > Passion.None
+                                        select a into b
+                                        select b.def.defName).ToList<string>();
+                        }
+                        List<WorkTypeDef> list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
+                        if (namelist != null && GenCollection.Any<string>(namelist))
+                        {
+                            IEnumerable<WorkTags> worklist = from a in list
+                                                             where a.relevantSkills != null && GenCollection.Any<SkillDef>(a.relevantSkills) && namelist.Contains(a.relevantSkills.First<SkillDef>().defName)
+                                                             select a into b
+                                                             select b.workTags;
+                            if (worklist != null && worklist.Any<WorkTags>())
+                            {
+                                foreach (WorkTags worklistItem in worklist)
+                                {
+                                    disabledRoyalTags &= ~worklistItem;
+                                }
+                            }
+                        }
+                    }
+                    workTags |= disabledRoyalTags;
+					#endregion
+
                     if (ModsConfig.IdeologyActive && __instance.Ideo != null)
                     {
                         Precept_Role role = __instance.Ideo.GetRole(__instance);
