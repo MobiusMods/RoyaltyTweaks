@@ -194,7 +194,7 @@ namespace TestMod
                     }
                     if (__instance.IsMutant)
                     {
-                        workTags = __instance.mutant.Def.disabledWorkTags;
+                        workTags |= __instance.mutant.Def.workDisables;
                         if (!__instance.mutant.IsPassive)
                         {
                             workTags &= ~WorkTags.Violent;
