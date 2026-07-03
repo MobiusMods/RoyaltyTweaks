@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace TestMod
+namespace Mobius.RoyaltyTweaks
 {
 
 	// Token: 0x02000002 RID: 2
@@ -20,6 +20,69 @@ namespace TestMod
 		{
 			cachedSettings = LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>();
 			new Harmony("com.mobius.royaltytweaks").PatchAll();
+		}
+
+		// A "senior royal" for these tweaks: any title above the base rank.
+		private static bool IsSeniorRoyal(Pawn pawn)
+		{
+			RoyalTitleDef def = pawn.royalty?.MostSeniorTitle?.def;
+			return def != null && def.seniority > 100;
+		}
+
+		// OR of disabledWorkTags across ALL conceited titles the pawn holds (not just
+		// the most senior one — a lesser title from a second faction counts too).
+		private static WorkTags ConceitedTitleDisabledTags(Pawn pawn)
+		{
+			WorkTags tags = WorkTags.None;
+			if (pawn.royalty != null)
+			{
+				foreach (RoyalTitle title in pawn.royalty.AllTitlesForReading)
+				{
+					if (title.conceited)
+					{
+						tags |= title.def.disabledWorkTags;
+					}
+				}
+			}
+			return tags;
+		}
+
+		// Passion in ANY of the work type's relevant skills (not just the first).
+		private static bool HasPassionInAnyRelevantSkill(Pawn pawn, WorkTypeDef workType, bool onlyMajor)
+		{
+			List<SkillDef> relevant = workType.relevantSkills;
+			if (relevant == null || relevant.Count == 0 || pawn.skills == null)
+			{
+				return false;
+			}
+			List<SkillRecord> pawnSkills = pawn.skills.skills;
+			for (int i = 0; i < pawnSkills.Count; i++)
+			{
+				SkillRecord sr = pawnSkills[i];
+				if (relevant.Contains(sr.def) && (onlyMajor ? sr.passion == Passion.Major : sr.passion != Passion.None))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		// Should this otherwise-disabled work type be re-enabled for the pawn?
+		// Only work the pawn's conceited TITLE disabled — never work disabled by
+		// backstory/traits/genes — and only when they have a passion in it.
+		private static bool PassionOverridesDisable(Pawn pawn, WorkTypeDef workType)
+		{
+			WorkTags royalTags = ConceitedTitleDisabledTags(pawn);
+			if (royalTags == WorkTags.None || (workType.workTags & royalTags) == WorkTags.None)
+			{
+				return false;
+			}
+			WorkTags storyTags = pawn.story?.DisabledWorkTagsBackstoryTraitsAndGenes ?? WorkTags.None;
+			if ((workType.workTags & storyTags) != WorkTags.None)
+			{
+				return false;
+			}
+			return HasPassionInAnyRelevantSkill(pawn, workType, cachedSettings.willWorkOnlyMajorPassionSkills);
 		}
 
 		// Token: 0x02000005 RID: 5
@@ -51,10 +114,18 @@ namespace TestMod
 				{
 					foreach (Pawn pawn in PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists)
 					{
-						if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null && pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
+						if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null)
 						{
-							highestSeniority = pawn.royalty.MostSeniorTitle.def.seniority;
-							if (pawn.ownership.AssignedThrone != null)
+							int seniority = pawn.royalty.MostSeniorTitle.def.seniority;
+							// throneAssigned must track pawns AT the current max, not just the
+							// one that raised it — reset it when the bar rises, and let any
+							// pawn tied at the bar set it (order-independent).
+							if (seniority > highestSeniority)
+							{
+								highestSeniority = seniority;
+								throneAssigned = pawn.ownership.AssignedThrone != null;
+							}
+							else if (seniority == highestSeniority && pawn.ownership.AssignedThrone != null)
 							{
 								throneAssigned = true;
 							}
@@ -112,60 +183,20 @@ namespace TestMod
                     workTags |= __instance.kindDef.disabledWorkTags;
 
                     #region Royalty Tweaks
-                    WorkTags disabledRoyalTags = 0;
-                    Pawn_RoyaltyTracker royalty = __instance.royalty;
-                    bool flag;
-
-                    if (royalty == null)
+                    WorkTags disabledRoyalTags = WorkTags.None;
+                    if (IsSeniorRoyal(__instance))
                     {
-                        flag = false;
-                    }
-                    else
-                    {
-                        RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
-                        int? num;
-                        if (mostSeniorTitle == null)
+                        disabledRoyalTags = ConceitedTitleDisabledTags(__instance);
+                        if (disabledRoyalTags != WorkTags.None)
                         {
-                            num = null;
-                        }
-                        else
-                        {
-                            RoyalTitleDef def = mostSeniorTitle.def;
-                            num = ((def != null) ? new int?(def.seniority) : null);
-                        }
-                        int? num2 = num;
-                        int num3 = 100;
-                        flag = (num2.GetValueOrDefault() > num3 & num2 != null);
-                    }
-                    if (flag)
-                    {
-                        foreach (RoyalTitle royalTitle in __instance.royalty.AllTitlesForReading)
-                        {
-                            if (royalTitle.conceited)
+                            bool onlyMajor = cachedSettings.willWorkOnlyMajorPassionSkills;
+                            List<WorkTypeDef> allWorkTypes = DefDatabase<WorkTypeDef>.AllDefsListForReading;
+                            for (int i = 0; i < allWorkTypes.Count; i++)
                             {
-                                disabledRoyalTags |= royalTitle.def.disabledWorkTags;
-                            }
-                        }
-                        bool onlyMajor = cachedSettings.willWorkOnlyMajorPassionSkills;
-                        List<WorkTypeDef> allWorkTypes = DefDatabase<WorkTypeDef>.AllDefsListForReading;
-                        List<SkillRecord> pawnSkills = __instance.skills.skills;
-                        for (int i = 0; i < allWorkTypes.Count; i++)
-                        {
-                            WorkTypeDef workType = allWorkTypes[i];
-                            if (workType.relevantSkills == null || workType.relevantSkills.Count == 0)
-                                continue;
-                            SkillDef relevantSkill = workType.relevantSkills[0];
-                            for (int j = 0; j < pawnSkills.Count; j++)
-                            {
-                                SkillRecord sr = pawnSkills[j];
-                                if (sr.def == relevantSkill)
+                                WorkTypeDef workType = allWorkTypes[i];
+                                if (HasPassionInAnyRelevantSkill(__instance, workType, onlyMajor))
                                 {
-                                    bool passionate = onlyMajor ? sr.passion == Passion.Major : sr.passion != Passion.None;
-                                    if (passionate)
-                                    {
-                                        disabledRoyalTags &= ~workType.workTags;
-                                    }
-                                    break;
+                                    disabledRoyalTags &= ~workType.workTags;
                                 }
                             }
                         }
@@ -216,68 +247,37 @@ namespace TestMod
 		[HarmonyPatch("GetDisabledWorkTypes")]
 		private static class GetDisabledWorkTypes_Patch
 		{
-			// Token: 0x0600000A RID: 10 RVA: 0x000027CC File Offset: 0x000009CC
-			private static void Postfix(Pawn __instance, ref List<WorkTypeDef> __result, bool permanentOnly = false)
+			private static void Postfix(Pawn __instance, ref List<WorkTypeDef> __result)
 			{
-				if (cachedSettings.willWorkPassionSkills && __instance.IsColonist)
+				if (!cachedSettings.willWorkPassionSkills || !__instance.IsColonist || !IsSeniorRoyal(__instance))
 				{
-					Pawn_RoyaltyTracker royalty = __instance.royalty;
-					bool flag;
-					if (royalty == null)
+					return;
+				}
+				// Copy-on-write filter: only allocate when something is actually
+				// re-enabled, and never mutate the list vanilla handed us.
+				List<WorkTypeDef> kept = null;
+				for (int i = 0; i < __result.Count; i++)
+				{
+					WorkTypeDef workType = __result[i];
+					if (PassionOverridesDisable(__instance, workType))
 					{
-						flag = false;
+						if (kept == null)
+						{
+							kept = new List<WorkTypeDef>(__result.Count);
+							for (int j = 0; j < i; j++)
+							{
+								kept.Add(__result[j]);
+							}
+						}
 					}
 					else
 					{
-						RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
-						int? num;
-						if (mostSeniorTitle == null)
-						{
-							num = null;
-						}
-						else
-						{
-							RoyalTitleDef def = mostSeniorTitle.def;
-							num = ((def != null) ? new int?(def.seniority) : null);
-						}
-						int? num2 = num;
-						int num3 = 100;
-						flag = (num2.GetValueOrDefault() > num3 & num2 != null);
+						kept?.Add(workType);
 					}
-					if (flag && __instance.royalty.MostSeniorTitle.conceited)
-					{
-						bool onlyMajor = cachedSettings.willWorkOnlyMajorPassionSkills;
-						List<WorkTypeDef> keepDisabled = new List<WorkTypeDef>();
-						List<SkillRecord> pawnSkills = __instance.skills.skills;
-						foreach (WorkTypeDef workType in __result)
-						{
-							List<SkillDef> skills = workType.relevantSkills;
-							bool hasPassion = false;
-							if (skills != null)
-							{
-								for (int i = 0; i < pawnSkills.Count; i++)
-								{
-									SkillRecord sr = pawnSkills[i];
-									if (skills.Contains(sr.def))
-									{
-										if (onlyMajor ? sr.passion == Passion.Major : sr.passion != Passion.None)
-										{
-											hasPassion = true;
-											break;
-										}
-									}
-								}
-							}
-							if (!hasPassion)
-							{
-								keepDisabled.Add(workType);
-							}
-						}
-						if (keepDisabled.Count > 0)
-						{
-							__result = keepDisabled;
-						}
-					}
+				}
+				if (kept != null)
+				{
+					__result = kept;
 				}
 			}
 		}
@@ -287,52 +287,12 @@ namespace TestMod
 		[HarmonyPatch("WorkTypeIsDisabled")]
 		private static class WorkTypeIsDisabled_Patch
 		{
-			// Token: 0x0600000B RID: 11 RVA: 0x00002930 File Offset: 0x00000B30
 			private static void Postfix(Pawn __instance, WorkTypeDef w, ref bool __result)
 			{
-				if (__result && cachedSettings.willWorkPassionSkills && __instance.IsColonist)
+				if (__result && cachedSettings.willWorkPassionSkills && __instance.IsColonist
+					&& IsSeniorRoyal(__instance) && PassionOverridesDisable(__instance, w))
 				{
-					Pawn_RoyaltyTracker royalty = __instance.royalty;
-					bool flag;
-					if (royalty == null)
-					{
-						flag = false;
-					}
-					else
-					{
-						RoyalTitle mostSeniorTitle = royalty.MostSeniorTitle;
-						int? num;
-						if (mostSeniorTitle == null)
-						{
-							num = null;
-						}
-						else
-						{
-							RoyalTitleDef def = mostSeniorTitle.def;
-							num = ((def != null) ? new int?(def.seniority) : null);
-						}
-						int? num2 = num;
-						int num3 = 100;
-						flag = (num2.GetValueOrDefault() > num3 & num2 != null);
-					}
-					if (flag && __instance.royalty.MostSeniorTitle.conceited)
-					{
-						bool onlyMajor = cachedSettings.willWorkOnlyMajorPassionSkills;
-						List<SkillDef> skills = w.relevantSkills;
-						List<SkillRecord> pawnSkills = __instance.skills.skills;
-						for (int i = 0; i < pawnSkills.Count; i++)
-						{
-							SkillRecord sr = pawnSkills[i];
-							if (skills.Contains(sr.def))
-							{
-								if (onlyMajor ? sr.passion == Passion.Major : sr.passion != Passion.None)
-								{
-									__result = false;
-									return;
-								}
-							}
-						}
-					}
+					__result = false;
 				}
 			}
 		}
@@ -394,24 +354,20 @@ namespace TestMod
 			base.ExposeData();
 		}
 
-		// Token: 0x04000001 RID: 1
-		public bool throneRoomTweaks;
+		// Field initializers are the REAL fresh-install defaults: RimWorld only calls
+		// ExposeData() when a settings file already exists on disk, so the defaults
+		// passed to Scribe_Values.Look only apply to keys missing from an old file.
+		public bool throneRoomTweaks = true;
 
-		// Token: 0x04000002 RID: 2
-		public bool spouseWantsThroneroom;
+		public bool spouseWantsThroneroom = true;
 
-		// Token: 0x04000003 RID: 3
-		public bool willWorkPassionSkills;
+		public bool willWorkPassionSkills = true;
 
-		// Token: 0x04000004 RID: 4
 		public bool willWorkOnlyMajorPassionSkills;
 
 		public bool disableBedroomRequirements;
 
 		public bool disableApparelRequirements;
-
-		// Token: 0x04000005 RID: 5
-		public float authorityFallPerDayMultiplier;
 	}
 	// Token: 0x02000004 RID: 4
 	public class RoyaltyTweaksMod : Mod
