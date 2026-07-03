@@ -7,7 +7,7 @@
   <SpouseOptionTooltip>The royal spouse of the highest titled royal will also demand a throneroom if their rank would normally call for it.</SpouseOptionTooltip>
   <RoyalPassionSkillSettings>Royal Passion Skill Settings</RoyalPassionSkillSettings>
   <PassionSkillsCheckboxLabel>Restore Disabled Royal Passion Skills</PassionSkillsCheckboxLabel>
-  <PassionSkillsCheckboxTooltip>Royals will continue to perform skills they are passionate about even after gaining royal ranks.</PassionSkillsCheckboxTooltip>
+  <PassionSkillsCheckboxTooltip>Royals will continue to perform skills they are passionate about even after gaining royal ranks. This has to be enabled before a rank is given. If not, it won't take affect until it's enabled and the colonist gains a higher rank.</PassionSkillsCheckboxTooltip>
   <MajorAndMinorLabel>Major and Minor</MajorAndMinorLabel>
   <MajorAndMinorTooltip>Royals will continue to perform both major and minor passion skills that would be disabled. This is the default mod behavior.</MajorAndMinorTooltip>
   <OnlyMajorLabel>Only Major</OnlyMajorLabel>
@@ -18,4 +18,9 @@
   <SpeechSettingsCheckboxTooltip>When selected, speeches that are Inspirational have a chance to trigger inspired skill states in speech attendees.</SpeechSettingsCheckboxTooltip>
   <SpeechInspireChanceLabel>Chance Inspirational Speech Inspires Colonists</SpeechInspireChanceLabel>
   <SpeechInspireChanceTooltip>When an Inspirational speech completes, this is the chance that an attendee will gain a random skill inspiration. 10% is the minimum chance.</SpeechInspireChanceTooltip>  
+  <RoyalRequirementSettings>Royal Requirement Settings</RoyalRequirementSettings>
+  <DisableBedroomRequirementsLabel>Disable Royal Bedroom Requirements</DisableBedroomRequirementsLabel>
+  <DisableBedroomRequirementsTooltip>Royals will no longer require a bedroom that meets their title's standards. Removes mood debuffs and alerts for unmet bedroom requirements.</DisableBedroomRequirementsTooltip>
+  <DisableApparelRequirementsLabel>Disable Royal Apparel Requirements</DisableApparelRequirementsLabel>
+  <DisableApparelRequirementsTooltip>Royals will no longer receive mood penalties for not wearing apparel that meets their title's requirements or quality standards.</DisableApparelRequirementsTooltip>
 </LanguageData>

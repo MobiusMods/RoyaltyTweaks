@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using UnityEngine;
-using System.Runtime.Remoting.Messaging;
 
 namespace TestMod
 {
@@ -14,9 +13,12 @@ namespace TestMod
 	[StaticConstructorOnStartup]
 	public static class RoyaltyTweaks
 	{
+		private static RoyaltyTweaksSettings cachedSettings;
+
 		// Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250
 		static RoyaltyTweaks()
 		{
+			cachedSettings = LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>();
 			new Harmony("com.mobius.royaltytweaks").PatchAll();
 		}
 
@@ -28,7 +30,7 @@ namespace TestMod
 			// Token: 0x06000007 RID: 7 RVA: 0x000022C0 File Offset: 0x000004C0
 			private static bool Prefix(Pawn_RoyaltyTracker __instance, Pawn ___pawn, ref bool __result)
 			{
-				if (!LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().throneRoomTweaks || ___pawn.ownership.AssignedThrone != null)
+				if (!cachedSettings.throneRoomTweaks || ___pawn.ownership.AssignedThrone != null)
 				{
 					return true;
 				}
@@ -47,7 +49,7 @@ namespace TestMod
 				bool throneAssigned = false;
 				if (__result && __instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
 				{
-					foreach (Pawn pawn in PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_FreeColonists)
+					foreach (Pawn pawn in PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists)
 					{
 						if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null && pawn.royalty.MostSeniorTitle.def.seniority > highestSeniority)
 						{
@@ -60,24 +62,33 @@ namespace TestMod
 					}
 					if (__instance.MostSeniorTitle.def.seniority < highestSeniority)
 					{
-						List<Pawn> spouses = null;
-						if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().spouseWantsThroneroom)
+						bool spouseHasHighTitle = false;
+						if (cachedSettings.spouseWantsThroneroom)
 						{
-							spouses = SpouseRelationUtility.GetSpouses(___pawn, false);
-						}
-						if (spouses != null)
-						{
-							if (!spouses.All((Pawn a) => a.royalty == null))
+							List<DirectPawnRelation> relations = ___pawn.relations?.DirectRelations;
+							if (relations != null)
 							{
-								if (!spouses.All((Pawn a) => a.royalty.MostSeniorTitle == null) && !spouses.All((Pawn a) => a.royalty.MostSeniorTitle.def.seniority < highestSeniority))
+								for (int i = 0; i < relations.Count; i++)
 								{
-									goto IL_1CD;
+									DirectPawnRelation rel = relations[i];
+									if (rel.def == PawnRelationDefOf.Spouse && rel.otherPawn != null && !rel.otherPawn.Dead)
+									{
+										Pawn spouse = rel.otherPawn;
+										if (spouse.royalty?.MostSeniorTitle?.def != null &&
+											spouse.royalty.MostSeniorTitle.def.seniority >= highestSeniority)
+										{
+											spouseHasHighTitle = true;
+											break;
+										}
+									}
 								}
 							}
 						}
-						__result = false;
+						if (!spouseHasHighTitle)
+						{
+							__result = false;
+						}
 					}
-					IL_1CD:
 					if (__instance.MostSeniorTitle.def.seniority == highestSeniority && throneAssigned)
 					{
 						__result = false;
@@ -92,16 +103,10 @@ namespace TestMod
 		[HarmonyPatch("CombinedDisabledWorkTags", MethodType.Getter)]
 		private static class Pawn_CombinedDisabledWorkTags_Patch
 		{
-			// Token: 0x06000008 RID: 8 RVA: 0x000024CC File Offset: 0x000006CC
-			private static string nameof(Action<float> applyOutcome)
-			{
-				throw new NotImplementedException();
-			}
-
 			// Token: 0x06000009 RID: 9 RVA: 0x000024D4 File Offset: 0x000006D4
 			private static bool Prefix(Pawn __instance, ref WorkTags __result)
 			{
-				if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills)
+				if (cachedSettings.willWorkPassionSkills)
 				{
                     WorkTags workTags = __instance.story?.DisabledWorkTagsBackstoryTraitsAndGenes ?? WorkTags.None;
                     workTags |= __instance.kindDef.disabledWorkTags;
@@ -141,33 +146,26 @@ namespace TestMod
                                 disabledRoyalTags |= royalTitle.def.disabledWorkTags;
                             }
                         }
-                        List<string> namelist = new List<string>();
-                        if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+                        bool onlyMajor = cachedSettings.willWorkOnlyMajorPassionSkills;
+                        List<WorkTypeDef> allWorkTypes = DefDatabase<WorkTypeDef>.AllDefsListForReading;
+                        List<SkillRecord> pawnSkills = __instance.skills.skills;
+                        for (int i = 0; i < allWorkTypes.Count; i++)
                         {
-                            namelist = (from a in __instance.skills.skills
-                                        where a.passion == Passion.Major
-                                        select a into b
-                                        select b.def.defName).ToList<string>();
-                        }
-                        else
-                        {
-                            namelist = (from a in __instance.skills.skills
-                                        where a.passion > Passion.None
-                                        select a into b
-                                        select b.def.defName).ToList<string>();
-                        }
-                        List<WorkTypeDef> list = DefDatabase<WorkTypeDef>.AllDefsListForReading;
-                        if (namelist != null && GenCollection.Any<string>(namelist))
-                        {
-                            IEnumerable<WorkTags> worklist = from a in list
-                                                             where a.relevantSkills != null && GenCollection.Any<SkillDef>(a.relevantSkills) && namelist.Contains(a.relevantSkills.First<SkillDef>().defName)
-                                                             select a into b
-                                                             select b.workTags;
-                            if (worklist != null && worklist.Any<WorkTags>())
+                            WorkTypeDef workType = allWorkTypes[i];
+                            if (workType.relevantSkills == null || workType.relevantSkills.Count == 0)
+                                continue;
+                            SkillDef relevantSkill = workType.relevantSkills[0];
+                            for (int j = 0; j < pawnSkills.Count; j++)
                             {
-                                foreach (WorkTags worklistItem in worklist)
+                                SkillRecord sr = pawnSkills[j];
+                                if (sr.def == relevantSkill)
                                 {
-                                    disabledRoyalTags &= ~worklistItem;
+                                    bool passionate = onlyMajor ? sr.passion == Passion.Major : sr.passion != Passion.None;
+                                    if (passionate)
+                                    {
+                                        disabledRoyalTags &= ~workType.workTags;
+                                    }
+                                    break;
                                 }
                             }
                         }
@@ -221,7 +219,7 @@ namespace TestMod
 			// Token: 0x0600000A RID: 10 RVA: 0x000027CC File Offset: 0x000009CC
 			private static void Postfix(Pawn __instance, ref List<WorkTypeDef> __result, bool permanentOnly = false)
 			{
-				if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills && __instance.IsColonist)
+				if (cachedSettings.willWorkPassionSkills && __instance.IsColonist)
 				{
 					Pawn_RoyaltyTracker royalty = __instance.royalty;
 					bool flag;
@@ -248,25 +246,36 @@ namespace TestMod
 					}
 					if (flag && __instance.royalty.MostSeniorTitle.conceited)
 					{
-						List<WorkTypeDef> removeList = new List<WorkTypeDef>();
+						bool onlyMajor = cachedSettings.willWorkOnlyMajorPassionSkills;
+						List<WorkTypeDef> keepDisabled = new List<WorkTypeDef>();
+						List<SkillRecord> pawnSkills = __instance.skills.skills;
 						foreach (WorkTypeDef workType in __result)
 						{
 							List<SkillDef> skills = workType.relevantSkills;
-							if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+							bool hasPassion = false;
+							if (skills != null)
 							{
-								if (!GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion == Passion.Major && skills.Contains(a.def)))
+								for (int i = 0; i < pawnSkills.Count; i++)
 								{
-									removeList.Add(workType);
+									SkillRecord sr = pawnSkills[i];
+									if (skills.Contains(sr.def))
+									{
+										if (onlyMajor ? sr.passion == Passion.Major : sr.passion != Passion.None)
+										{
+											hasPassion = true;
+											break;
+										}
+									}
 								}
 							}
-							else if (!GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion != Passion.None && skills.Contains(a.def)))
+							if (!hasPassion)
 							{
-								removeList.Add(workType);
+								keepDisabled.Add(workType);
 							}
 						}
-						if (!GenList.NullOrEmpty<WorkTypeDef>(removeList))
+						if (keepDisabled.Count > 0)
 						{
-							__result = removeList;
+							__result = keepDisabled;
 						}
 					}
 				}
@@ -281,7 +290,7 @@ namespace TestMod
 			// Token: 0x0600000B RID: 11 RVA: 0x00002930 File Offset: 0x00000B30
 			private static void Postfix(Pawn __instance, WorkTypeDef w, ref bool __result)
 			{
-				if (__result && LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkPassionSkills && __instance.IsColonist)
+				if (__result && cachedSettings.willWorkPassionSkills && __instance.IsColonist)
 				{
 					Pawn_RoyaltyTracker royalty = __instance.royalty;
 					bool flag;
@@ -308,20 +317,63 @@ namespace TestMod
 					}
 					if (flag && __instance.royalty.MostSeniorTitle.conceited)
 					{
+						bool onlyMajor = cachedSettings.willWorkOnlyMajorPassionSkills;
 						List<SkillDef> skills = w.relevantSkills;
-						if (LoadedModManager.GetMod<RoyaltyTweaksMod>().GetSettings<RoyaltyTweaksSettings>().willWorkOnlyMajorPassionSkills)
+						List<SkillRecord> pawnSkills = __instance.skills.skills;
+						for (int i = 0; i < pawnSkills.Count; i++)
 						{
-							if (GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion == Passion.Major && skills.Contains(a.def)))
+							SkillRecord sr = pawnSkills[i];
+							if (skills.Contains(sr.def))
 							{
-								__result = false;
-								return;
+								if (onlyMajor ? sr.passion == Passion.Major : sr.passion != Passion.None)
+								{
+									__result = false;
+									return;
+								}
 							}
 						}
-						else if (GenCollection.Any<SkillRecord>(__instance.skills.skills, (SkillRecord a) => a.passion != Passion.None && skills.Contains(a.def)))
-						{
-							__result = false;
-						}
 					}
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(Pawn_RoyaltyTracker))]
+		[HarmonyPatch("CanRequireBedroom")]
+		private static class Pawn_RoyaltyTracker_CanRequireBedroom_Patch
+		{
+			private static bool Prefix(ref bool __result)
+			{
+				if (cachedSettings.disableBedroomRequirements)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		[HarmonyPatch(typeof(ThoughtWorker_RoyalTitleApparelRequirementNotMet))]
+		[HarmonyPatch("CurrentStateInternal")]
+		private static class ThoughtWorker_RoyalTitleApparelRequirementNotMet_Patch
+		{
+			private static void Postfix(ref ThoughtState __result)
+			{
+				if (cachedSettings.disableApparelRequirements)
+				{
+					__result = ThoughtState.Inactive;
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(ThoughtWorker_RoyalTitleApparelMinQualityNotMet))]
+		[HarmonyPatch("CurrentStateInternal")]
+		private static class ThoughtWorker_RoyalTitleApparelMinQualityNotMet_Patch
+		{
+			private static void Postfix(ref ThoughtState __result)
+			{
+				if (cachedSettings.disableApparelRequirements)
+				{
+					__result = ThoughtState.Inactive;
 				}
 			}
 		}
@@ -337,6 +389,8 @@ namespace TestMod
 			Scribe_Values.Look<bool>(ref this.spouseWantsThroneroom, "spouseWantsThroneroom", true, true);
 			Scribe_Values.Look<bool>(ref this.willWorkPassionSkills, "willWorkPassionSkills", true, true);
 			Scribe_Values.Look<bool>(ref this.willWorkOnlyMajorPassionSkills, "willWorkOnlyMajorPassionSkills", false, true);
+			Scribe_Values.Look<bool>(ref this.disableBedroomRequirements, "disableBedroomRequirements", false, true);
+			Scribe_Values.Look<bool>(ref this.disableApparelRequirements, "disableApparelRequirements", false, true);
 			base.ExposeData();
 		}
 
@@ -351,6 +405,10 @@ namespace TestMod
 
 		// Token: 0x04000004 RID: 4
 		public bool willWorkOnlyMajorPassionSkills;
+
+		public bool disableBedroomRequirements;
+
+		public bool disableApparelRequirements;
 
 		// Token: 0x04000005 RID: 5
 		public float authorityFallPerDayMultiplier;
@@ -375,7 +433,7 @@ namespace TestMod
 			{
 				listingStandard.CheckboxLabeled(Translator.Translate("SpouseOptionLabel"), ref this.settings.spouseWantsThroneroom, Translator.Translate("SpouseOptionTooltip"));
 			}
-			listingStandard.Label("", -1f, null);
+			listingStandard.Label((TaggedString)"", -1f, (string)null);
 			listingStandard.Label("-=[ " + Translator.Translate("RoyalPassionSkillSettings") + " ]=-", -1f, null);
 			listingStandard.CheckboxLabeled(Translator.Translate("PassionSkillsCheckboxLabel"), ref this.settings.willWorkPassionSkills, Translator.Translate("PassionSkillsCheckboxTooltip"));
 			if (this.settings.willWorkPassionSkills)
@@ -389,6 +447,10 @@ namespace TestMod
 					this.settings.willWorkOnlyMajorPassionSkills = true;
 				}
 			}
+			listingStandard.Label((TaggedString)"", -1f, (string)null);
+			listingStandard.Label("-=[ " + Translator.Translate("RoyalRequirementSettings") + " ]=-", -1f, null);
+			listingStandard.CheckboxLabeled(Translator.Translate("DisableBedroomRequirementsLabel"), ref this.settings.disableBedroomRequirements, Translator.Translate("DisableBedroomRequirementsTooltip"));
+			listingStandard.CheckboxLabeled(Translator.Translate("DisableApparelRequirementsLabel"), ref this.settings.disableApparelRequirements, Translator.Translate("DisableApparelRequirementsTooltip"));
 			listingStandard.End();
 			base.DoSettingsWindowContents(inRect);
 		}

@@ -1,6 +1,13 @@
-﻿################################################################################
-# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
-################################################################################
+# Build output
+bin/
+obj/
 
-/obj/Debug
-/.vs
+# NuGet packages (restored from packages.config)
+packages/
+
+# IDE state
+.vs/
+.claude/
+
+# Local release staging (the shipped copy lives in the RimWorld Mods folder)
+Release/
