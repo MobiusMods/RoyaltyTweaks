@@ -1,6 +1,6 @@
 Limits throne room requirement to highest ranking royal. Also re-enables passionate skills.
 
-Royalty Tweaks 1.16
+Royalty Tweaks 1.37
 
 What noble in their right mind would let their knights each have their own throne room? Not mine, that's for sure!
 
@@ -28,6 +28,10 @@ CONTRIBUTORS
 HawnHan - Chinese Translation
 
 CHANGELOG
+1.37 - Bug fixes: fresh installs now start with the main features enabled as intended; passion-skill re-enabling only restores title-disabled work (backstory/trait/gene incapables stay disabled); fixed royals passionate in all their disabled work getting nothing re-enabled; throne room tie-breaking no longer depends on colonist order; passion checks consider every skill relevant to a work type.
+
+1.36 - Major refactoring for performance. New features: Disable Royal Bedroom Requirements (removes bedroom furniture/room requirements for royals — suppresses both mood debuffs and alerts) and Disable Royal Apparel Requirements (removes mood penalties for title-inappropriate or low-quality apparel). Both off by default, in the new "Royal Requirement Settings" section. Supports RimWorld 1.6.
+
 1.16 - Removed Inspiration from Inspiring Speech stuff because it's been added to the core Royalty experience. Updated the mod to not throw warnings about game version 1.2.
 
 1.15 - The second highest royal will no longer demand a throneroom when the highest one gets sent on a caravan or goes out trading or something. It should now work as expected. Thanks to Delmar for reporting that bug.
