@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <ThroneRoomSettings>谒见厅选项</ThroneRoomSettings>
-  <ThroneRoomSharedCheckboxLabel>共用谒见厅</ThroneRoomSharedCheckboxLabel>
-  <ThroneRoomSharedCheckboxTooltip>单个谒见厅可放置多张宝座。</ThroneRoomSharedCheckboxTooltip>
-  <ThroneRoomRequiredByHighestCheckboxLabel>仅最高头衔的贵族需求谒见厅</ThroneRoomRequiredByHighestCheckboxLabel>
+<ThroneRoomRequiredByHighestCheckboxLabel>仅最高头衔的贵族需求谒见厅</ThroneRoomRequiredByHighestCheckboxLabel>
   <ThroneRoomRequiredByHighestCheckboxTooltip>只有最高头衔的贵族(们)需求谒见厅。</ThroneRoomRequiredByHighestCheckboxTooltip>
   <SpouseOptionLabel>贵族配偶也需求谒见厅</SpouseOptionLabel>
   <SpouseOptionTooltip>若最高头衔贵族的配偶的贵族级别需求谒见厅，则也会要求符合自身爵位的谒见厅。</SpouseOptionTooltip>
@@ -20,7 +18,9 @@
   <SpeechSettingsCheckboxTooltip>启用后，激情澎湃的演说有几率激发听众的灵感。</SpeechSettingsCheckboxTooltip>
   <SpeechInspireChanceLabel>演说激发灵感几率</SpeechInspireChanceLabel>
   <SpeechInspireChanceTooltip>一场激情澎湃的演说结束后，激发听众随机获得一个灵感的几率。可选最小激发几率为10%。</SpeechInspireChanceTooltip>
-  <AuthoritySettings>威严值设定</AuthoritySettings>
-  <AuthorityFallPerDayMultiplierLabel>威严值下降速率</AuthorityFallPerDayMultiplierLabel>
-  <AuthorityFallPerDayMultiplierTooltip>殖民者威严值的下降速率会乘以该数值。游戏默认为100%。调整为50%意味着下降速度减半。0%则代表贵族没有威严需求，也就不会衰减了。</AuthorityFallPerDayMultiplierTooltip>
+<RoyalRequirementSettings>贵族需求设置</RoyalRequirementSettings>
+  <DisableBedroomRequirementsLabel>禁用贵族卧室需求</DisableBedroomRequirementsLabel>
+  <DisableBedroomRequirementsTooltip>贵族将不再要求符合其爵位标准的卧室。移除未满足卧室需求的心情减益和警报。</DisableBedroomRequirementsTooltip>
+  <DisableApparelRequirementsLabel>禁用贵族服饰需求</DisableApparelRequirementsLabel>
+  <DisableApparelRequirementsTooltip>贵族将不再因未穿着符合其爵位要求或品质标准的服饰而受到心情惩罚。</DisableApparelRequirementsTooltip>
 </LanguageData>
