@@ -3,14 +3,17 @@ using HarmonyLib;
 using Verse;
 using System.Collections.Generic;
 using System;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
 // The namespace is part of the serialized settings contract: RimWorld writes
-// <ModSettings Class="TestMod.RoyaltyTweaksSettings"> into every user's config
-// file, so renaming the namespace (or the settings class) makes existing
-// installs log a resolve error on startup. It stays TestMod forever.
-namespace TestMod
+// <ModSettings Class="Mobius.RoyaltyTweaks.RoyaltyTweaksSettings"> into every
+// user's config file. The mod shipped as "TestMod" for years, so the
+// RoyaltyTweaksMod constructor migrates old config files in place BEFORE the
+// settings are read (see MigrateSettingsNamespace). Any future rename needs
+// the same treatment or existing installs log a resolve error on startup.
+namespace Mobius.RoyaltyTweaks
 {
 
 	// Token: 0x02000002 RID: 2
@@ -379,7 +382,43 @@ namespace TestMod
 		// Token: 0x06000004 RID: 4 RVA: 0x000020C7 File Offset: 0x000002C7
 		public RoyaltyTweaksMod(ModContentPack content) : base(content)
 		{
+			MigrateSettingsNamespace(content);
 			this.settings = base.GetSettings<RoyaltyTweaksSettings>();
+		}
+
+		// Builds before the namespace rename serialized the settings class as
+		// "TestMod.RoyaltyTweaksSettings" — the full type name lives in each user's
+		// config file. Rewrite the old name in place BEFORE GetSettings reads the
+		// file, so the rename is invisible: no startup error, no lost settings.
+		// (Mod constructors run before any settings read and before the
+		// StaticConstructorOnStartup pass, so this is early enough.)
+		private static void MigrateSettingsNamespace(ModContentPack content)
+		{
+			try
+			{
+				// Mirrors LoadedModManager.GetSettingsFilename (private): the file is
+				// keyed by the mod's folder name and this class's name.
+				string file = Path.Combine(GenFilePaths.ConfigFolderPath,
+					GenText.SanitizeFilename(string.Format("Mod_{0}_{1}.xml", content.FolderName, nameof(RoyaltyTweaksMod))));
+				if (!File.Exists(file))
+				{
+					return;
+				}
+				string xml = File.ReadAllText(file);
+				if (!xml.Contains("\"TestMod.RoyaltyTweaksSettings\""))
+				{
+					return; // already migrated (or a fresh install)
+				}
+				File.WriteAllText(file, xml.Replace(
+					"\"TestMod.RoyaltyTweaksSettings\"",
+					"\"Mobius.RoyaltyTweaks.RoyaltyTweaksSettings\""));
+			}
+			catch (Exception e)
+			{
+				// Worst case RimWorld logs one resolve error and falls back to the new
+				// type — settings still load, so never let the migration itself throw.
+				Log.Warning("[Royalty Tweaks] settings migration failed: " + e);
+			}
 		}
 
 		// Token: 0x06000005 RID: 5 RVA: 0x000020DC File Offset: 0x000002DC
