@@ -6,7 +6,11 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace Mobius.RoyaltyTweaks
+// The namespace is part of the serialized settings contract: RimWorld writes
+// <ModSettings Class="TestMod.RoyaltyTweaksSettings"> into every user's config
+// file, so renaming the namespace (or the settings class) makes existing
+// installs log a resolve error on startup. It stays TestMod forever.
+namespace TestMod
 {
 
 	// Token: 0x02000002 RID: 2
