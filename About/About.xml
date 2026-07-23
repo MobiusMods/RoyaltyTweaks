@@ -28,15 +28,12 @@
     <li>1.5</li>
     <li>1.6</li>
   </supportedVersions>
-  <description>-=[ Royalty Tweaks 1.37 ]=-
+  <description>-=[ Royalty Tweaks 1.38 ]=-
 
 * Bug fixes
-  - Fresh installs now start with the throne room and passion skill features ON, as intended (previously every
-   feature was silently off until you visited the mod options once).
-  - Passion-skill re-enabling now only restores work disabled by TITLES - work disabled by a backstory, trait,
-   or gene stays disabled, as it should.
-  - Fixed royals passionate in ALL of their disabled work types getting nothing re-enabled at all.
-  - Throne room tie-breaking (two royals sharing the top title) no longer depends on colonist order.
-  - Passion checks now consider every skill relevant to a work type, not just the first one.
+  - Bestowing ceremony quests now respect the throne room tweak: promoting a pawn who is NOT your
+   highest-ranking royal no longer demands a throne room for them - both accepting the quest and starting
+   the ceremony. (Reported with Vanilla Factions Expanded - Empire, but the gap was in the vanilla quest
+   path, so this fixes it everywhere.)
   </description>
 </ModMetaData>

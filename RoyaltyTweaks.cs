@@ -37,7 +37,7 @@ namespace Mobius.RoyaltyTweaks
 		}
 
 		// OR of disabledWorkTags across ALL conceited titles the pawn holds (not just
-		// the most senior one — a lesser title from a second faction counts too).
+		// the most senior one - a lesser title from a second faction counts too).
 		private static WorkTags ConceitedTitleDisabledTags(Pawn pawn)
 		{
 			WorkTags tags = WorkTags.None;
@@ -75,8 +75,8 @@ namespace Mobius.RoyaltyTweaks
 		}
 
 		// Should this otherwise-disabled work type be re-enabled for the pawn?
-		// Only work the pawn's conceited TITLE disabled — never work disabled by
-		// backstory/traits/genes — and only when they have a passion in it.
+		// Only work the pawn's conceited TITLE disabled - never work disabled by
+		// backstory/traits/genes - and only when they have a passion in it.
 		private static bool PassionOverridesDisable(Pawn pawn, WorkTypeDef workType)
 		{
 			WorkTags royalTags = ConceitedTitleDisabledTags(pawn);
@@ -90,6 +90,73 @@ namespace Mobius.RoyaltyTweaks
 				return false;
 			}
 			return HasPassionInAnyRelevantSkill(pawn, workType, cachedSettings.willWorkOnlyMajorPassionSkills);
+		}
+
+		// Highest most-senior-title seniority among the OTHER free colonists, and
+		// whether any pawn tied at that bar has a throne assigned.
+		private static void HighestOtherTitleSeniority(Pawn pawn, out int highestSeniority, out bool throneAssigned)
+		{
+			highestSeniority = 0;
+			throneAssigned = false;
+			foreach (Pawn other in PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists)
+			{
+				if (other != pawn && other.royalty != null && other.royalty.MostSeniorTitle != null && other.royalty.MostSeniorTitle.def != null)
+				{
+					int seniority = other.royalty.MostSeniorTitle.def.seniority;
+					// throneAssigned must track pawns AT the current max, not just the
+					// one that raised it - reset it when the bar rises, and let any
+					// pawn tied at the bar set it (order-independent).
+					if (seniority > highestSeniority)
+					{
+						highestSeniority = seniority;
+						throneAssigned = other.ownership.AssignedThrone != null;
+					}
+					else if (seniority == highestSeniority && other.ownership.AssignedThrone != null)
+					{
+						throneAssigned = true;
+					}
+				}
+			}
+		}
+
+		private static bool SpouseHasSeniorityAtLeast(Pawn pawn, int seniority)
+		{
+			List<DirectPawnRelation> relations = pawn.relations?.DirectRelations;
+			if (relations != null)
+			{
+				for (int i = 0; i < relations.Count; i++)
+				{
+					DirectPawnRelation rel = relations[i];
+					if (rel.def == PawnRelationDefOf.Spouse && rel.otherPawn != null && !rel.otherPawn.Dead)
+					{
+						Pawn spouse = rel.otherPawn;
+						if (spouse.royalty?.MostSeniorTitle?.def != null &&
+							spouse.royalty.MostSeniorTitle.def.seniority >= seniority)
+						{
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+
+		// The core throne-room tweak, shared by every patch that gates something on
+		// throne room requirements: is the requirement waived for this pawn when
+		// judged at `seniority`? (The pawn's current title's seniority, or the
+		// prospective title's when a promotion quest is being evaluated.) Waived
+		// when a higher-titled pawn exists (unless the spouse rule keeps it), or
+		// when a pawn tied at the top already has a throne assigned.
+		private static bool ThroneroomRequirementWaived(Pawn pawn, int seniority)
+		{
+			int highestSeniority;
+			bool throneAssigned;
+			HighestOtherTitleSeniority(pawn, out highestSeniority, out throneAssigned);
+			if (seniority < highestSeniority)
+			{
+				return !(cachedSettings.spouseWantsThroneroom && SpouseHasSeniorityAtLeast(pawn, highestSeniority));
+			}
+			return seniority == highestSeniority && throneAssigned;
 		}
 
 		// Token: 0x02000005 RID: 5
@@ -115,64 +182,51 @@ namespace Mobius.RoyaltyTweaks
 					flag = false;
 				}
 				__result = flag;
-				int highestSeniority = 0;
-				bool throneAssigned = false;
-				if (__result && __instance != null && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null)
+				if (__result && __instance.MostSeniorTitle != null && __instance.MostSeniorTitle.def != null
+					&& ThroneroomRequirementWaived(___pawn, __instance.MostSeniorTitle.def.seniority))
 				{
-					foreach (Pawn pawn in PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists)
-					{
-						if (pawn != ___pawn && pawn.royalty != null && pawn.royalty.MostSeniorTitle != null && pawn.royalty.MostSeniorTitle.def != null)
-						{
-							int seniority = pawn.royalty.MostSeniorTitle.def.seniority;
-							// throneAssigned must track pawns AT the current max, not just the
-							// one that raised it — reset it when the bar rises, and let any
-							// pawn tied at the bar set it (order-independent).
-							if (seniority > highestSeniority)
-							{
-								highestSeniority = seniority;
-								throneAssigned = pawn.ownership.AssignedThrone != null;
-							}
-							else if (seniority == highestSeniority && pawn.ownership.AssignedThrone != null)
-							{
-								throneAssigned = true;
-							}
-						}
-					}
-					if (__instance.MostSeniorTitle.def.seniority < highestSeniority)
-					{
-						bool spouseHasHighTitle = false;
-						if (cachedSettings.spouseWantsThroneroom)
-						{
-							List<DirectPawnRelation> relations = ___pawn.relations?.DirectRelations;
-							if (relations != null)
-							{
-								for (int i = 0; i < relations.Count; i++)
-								{
-									DirectPawnRelation rel = relations[i];
-									if (rel.def == PawnRelationDefOf.Spouse && rel.otherPawn != null && !rel.otherPawn.Dead)
-									{
-										Pawn spouse = rel.otherPawn;
-										if (spouse.royalty?.MostSeniorTitle?.def != null &&
-											spouse.royalty.MostSeniorTitle.def.seniority >= highestSeniority)
-										{
-											spouseHasHighTitle = true;
-											break;
-										}
-									}
-								}
-							}
-						}
-						if (!spouseHasHighTitle)
-						{
-							__result = false;
-						}
-					}
-					if (__instance.MostSeniorTitle.def.seniority == highestSeniority && throneAssigned)
-					{
-						__result = false;
-					}
+					__result = false;
 				}
 				return false;
+			}
+		}
+
+		// The bestowing-ceremony quest never calls CanRequireThroneroom - it checks
+		// the PROSPECTIVE title's throneRoomRequirements directly, in two places:
+		// QuestPart_RequirementsToAcceptThroneRoom.CanAccept blocks accepting the
+		// quest, and JobDriver_BestowingCeremony.AnalyzeThroneRoom blocks starting
+		// the ceremony (both the gizmo and the job call it). Waive both under the
+		// same rule as the patch above, judged at the prospective title's seniority.
+		[HarmonyPatch(typeof(QuestPart_RequirementsToAcceptThroneRoom))]
+		[HarmonyPatch("CanAccept")]
+		private static class QuestPart_RequirementsToAcceptThroneRoom_CanAccept_Patch
+		{
+			private static void Postfix(QuestPart_RequirementsToAcceptThroneRoom __instance, ref AcceptanceReport __result)
+			{
+				if (!__result.Accepted && cachedSettings.throneRoomTweaks
+					&& __instance.forPawn != null && __instance.forTitle != null
+					&& ThroneroomRequirementWaived(__instance.forPawn, __instance.forTitle.seniority))
+				{
+					__result = true;
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(JobDriver_BestowingCeremony))]
+		[HarmonyPatch("AnalyzeThroneRoom")]
+		private static class JobDriver_BestowingCeremony_AnalyzeThroneRoom_Patch
+		{
+			private static void Postfix(Pawn bestower, Pawn target, ref bool __result)
+			{
+				if (__result || !cachedSettings.throneRoomTweaks || target == null || target.royalty == null || bestower == null)
+				{
+					return;
+				}
+				RoyalTitleDef title = target.royalty.GetTitleAwardedWhenUpdating(bestower.Faction, target.royalty.GetFavor(bestower.Faction));
+				if (title != null && ThroneroomRequirementWaived(target, title.seniority))
+				{
+					__result = true;
+				}
 			}
 		}
 
@@ -387,7 +441,7 @@ namespace Mobius.RoyaltyTweaks
 		}
 
 		// Builds before the namespace rename serialized the settings class as
-		// "TestMod.RoyaltyTweaksSettings" — the full type name lives in each user's
+		// "TestMod.RoyaltyTweaksSettings" - the full type name lives in each user's
 		// config file. Rewrite the old name in place BEFORE GetSettings reads the
 		// file, so the rename is invisible: no startup error, no lost settings.
 		// (Mod constructors run before any settings read and before the
@@ -416,7 +470,7 @@ namespace Mobius.RoyaltyTweaks
 			catch (Exception e)
 			{
 				// Worst case RimWorld logs one resolve error and falls back to the new
-				// type — settings still load, so never let the migration itself throw.
+				// type - settings still load, so never let the migration itself throw.
 				Log.Warning("[Royalty Tweaks] settings migration failed: " + e);
 			}
 		}
