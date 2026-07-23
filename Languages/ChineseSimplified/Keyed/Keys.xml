@@ -9,7 +9,7 @@
   <PassionSkillsCheckboxLabel>解锁已禁用的兴趣工作</PassionSkillsCheckboxLabel>
   <PassionSkillsCheckboxTooltip>贵族在晋升爵位后依然可以继续进行之前感兴趣的工作。</PassionSkillsCheckboxTooltip>
   <MajorAndMinorLabel>狂热和好奇</MajorAndMinorLabel>
-  <MajorAndMinorTooltip>贵族在晋升后仍可进行技能兴趣度为狂热和好奇的相关工作,而非原设定的禁止。这是Mod默认选项。</MajorAndMinorTooltip>
+  <MajorAndMinorTooltip>贵族在晋升后仍可进行技能兴趣度为狂热和好奇的相关工作，而非原设定的禁止。这是Mod默认选项。</MajorAndMinorTooltip>
   <OnlyMajorLabel>仅狂热</OnlyMajorLabel>
   <OnlyMajorTooltip>贵族在晋升后仍可进行技能兴趣度为狂热的相关工作，而非原设定的禁止；技能兴趣度为好奇的相关工作会被正常禁止。</OnlyMajorTooltip>
   <RoyalTweaks>皇权设定调整</RoyalTweaks>
