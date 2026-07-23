@@ -31,9 +31,6 @@
   <description>-=[ Royalty Tweaks 1.38 ]=-
 
 * Bug fixes
-  - Bestowing ceremony quests now respect the throne room tweak: promoting a pawn who is NOT your
-   highest-ranking royal no longer demands a throne room for them - both accepting the quest and starting
-   the ceremony. (Reported with Vanilla Factions Expanded - Empire, but the gap was in the vanilla quest
-   path, so this fixes it everywhere.)
+  - Bestowing ceremony quests now respect the throne room tweak: promoting a pawn who is NOT your highest-ranking royal no longer demands a throne room for them, for both accepting the quest and starting the ceremony. (Reported with Vanilla Factions Expanded - Empire, but the gap was in the vanilla quest path, so this fixes it everywhere.)
   </description>
 </ModMetaData>
