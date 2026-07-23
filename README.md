@@ -1,6 +1,6 @@
 Limits throne room requirement to highest ranking royal. Also re-enables passionate skills.
 
-Royalty Tweaks 1.37
+Royalty Tweaks 1.38
 
 What noble in their right mind would let their knights each have their own throne room? Not mine, that's for sure!
 
@@ -28,9 +28,11 @@ CONTRIBUTORS
 HawnHan - Chinese Translation
 
 CHANGELOG
+1.38 - Bestowing ceremony quests now respect the throne room tweak: promoting a pawn who is not your highest-ranking royal no longer requires a throne room for them (quest acceptance and the ceremony itself; fixes reports with Vanilla Factions Expanded - Empire, though the issue was vanilla too).
+
 1.37 - Bug fixes: fresh installs now start with the main features enabled as intended; passion-skill re-enabling only restores title-disabled work (backstory/trait/gene incapables stay disabled); fixed royals passionate in all their disabled work getting nothing re-enabled; throne room tie-breaking no longer depends on colonist order; passion checks consider every skill relevant to a work type.
 
-1.36 - Major refactoring for performance. New features: Disable Royal Bedroom Requirements (removes bedroom furniture/room requirements for royals — suppresses both mood debuffs and alerts) and Disable Royal Apparel Requirements (removes mood penalties for title-inappropriate or low-quality apparel). Both off by default, in the new "Royal Requirement Settings" section. Supports RimWorld 1.6.
+1.36 - Major refactoring for performance. New features: Disable Royal Bedroom Requirements (removes bedroom furniture/room requirements for royals - suppresses both mood debuffs and alerts) and Disable Royal Apparel Requirements (removes mood penalties for title-inappropriate or low-quality apparel). Both off by default, in the new "Royal Requirement Settings" section. Supports RimWorld 1.6.
 
 1.16 - Removed Inspiration from Inspiring Speech stuff because it's been added to the core Royalty experience. Updated the mod to not throw warnings about game version 1.2.
 
